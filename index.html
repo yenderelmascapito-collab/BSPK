@@ -2433,33 +2433,51 @@ document.getElementById('modal').addEventListener('click', function(e) {
             if (!rawQuery) return null;
             const endpoints = ['https://lookup.binlist.net/', 'https://api.binlist.net/'];
             const queries = rawQuery.length === 8 ? [rawQuery, rawQuery.slice(0, 6)] : [rawQuery];
-            for (const query of queries) {
-                for (const endpoint of endpoints) {
-                    try {
-                        const res = await fetch(endpoint + query, {
-                            headers: {
-                                'Accept-Version': '3'
-                            },
-                            mode: 'cors'
-                        });
-                        if (res.status === 404) continue;
-                        if (res.status === 429) return { error: 'Límite de consultas excedido', rateLimited: true };
-                        if (!res.ok) continue;
-                        const data = await res.json();
-                        return {
-                            scheme: (data.scheme || 'N/A').toUpperCase(),
-                            type: data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : 'N/A',
-                            brand: data.brand || 'N/A',
-                            bank: data.bank?.name || 'N/A',
-                            country: data.country?.name || 'N/A',
-                            emoji: data.country?.emoji || '',
-                            prepaid: typeof data.prepaid === 'boolean' ? (data.prepaid ? 'Sí' : 'No') : 'N/A'
-                        };
-                    } catch (err) {
-                        continue;
-                    }
+
+            async function tryFetch(url, extraHeaders = {}) {
+                try {
+                    const res = await fetch(url, { headers: extraHeaders });
+                    if (res.status === 404) return null;
+                    if (res.status === 429) return { error: 'Límite de consultas excedido', rateLimited: true };
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    return {
+                        scheme: (data.scheme || 'N/A').toUpperCase(),
+                        type: data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : 'N/A',
+                        brand: data.brand || 'N/A',
+                        bank: data.bank?.name || 'N/A',
+                        country: data.country?.name || 'N/A',
+                        emoji: data.country?.emoji || '',
+                        prepaid: typeof data.prepaid === 'boolean' ? (data.prepaid ? 'Sí' : 'No') : 'N/A'
+                    };
+                } catch (err) {
+                    return null;
                 }
             }
+
+            for (const query of queries) {
+                for (const endpoint of endpoints) {
+                    const url = endpoint + query;
+                    const result = await tryFetch(url);
+                    if (result) return result;
+                }
+            }
+
+            const headers = { 'Accept-Version': '3' };
+            for (const query of queries) {
+                for (const endpoint of endpoints) {
+                    const url = endpoint + query;
+                    const result = await tryFetch(url, headers);
+                    if (result) return result;
+                }
+            }
+
+            for (const query of queries) {
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://lookup.binlist.net/' + query)}`;
+                const result = await tryFetch(proxyUrl, headers);
+                if (result) return result;
+            }
+
             return null;
         }
 
