@@ -1,1344 +1,568 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VCG Professional - Virtual Card Generator</title>
-  <style>
-    :root {
-      --bg: #0d1222;
-      --bg2: #141b3d;
-      --fg: #e8edf8;
-      --accent: #34d399;
-      --accent2: #60a5fa;
-      --border: rgba(116, 138, 255, 0.25);
-      --danger: #f87171;
-      --panel: rgba(14, 20, 42, 0.82);
-      --success: #10d981;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCG Professional - Virtual Card Generator</title>
+    <style>
+        :root {
+            --bg: #0d1222;
+            --bg2: #141b3d;
+            --fg: #e8edf8;
+            --accent: #34d399;
+            --accent2: #60a5fa;
+            --border: rgba(116, 138, 255, 0.25);
+            --success: #10d981;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
-      background: radial-gradient(circle at 20% 10%, #1a263f, #0b1021 42%, #050916 100%);
-      color: var(--fg);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 20px;
-      overflow-x: hidden;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto';
+            background: radial-gradient(circle at 20% 10%, #1a263f, #0b1021 42%, #050916 100%);
+            color: var(--fg);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    .container {
-      width: min(1200px, 100%);
-      border-radius: 20px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: linear-gradient(180deg, rgba(16, 26, 58, 0.95), rgba(8, 12, 26, 0.92));
-      box-shadow: 0 10px 50px rgba(0, 0, 0, 0.45);
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
+        .container {
+            width: min(1400px, 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, rgba(16, 26, 58, 0.95), rgba(8, 12, 26, 0.92));
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.45);
+            display: grid;
+            grid-template-rows: auto 1fr;
+            margin: 0 auto;
+        }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 18px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(5, 8, 19, 0.78);
-      flex-wrap: wrap;
-    }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(5, 8, 19, 0.78);
+        }
 
-    .brand {
-      font-size: 1.45rem;
-      font-weight: 800;
-      letter-spacing: 0.03em;
-      color: #75e6e7;
-    }
+        .brand {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            color: #75e6e7;
+        }
 
-    .subtitle {
-      font-size: 0.92rem;
-      color: #99a9c9;
-      width: 100%;
-    }
+        .subtitle {
+            font-size: 0.92rem;
+            color: #99a9c9;
+        }
 
-    .view-toggle {
-      display: flex;
-      gap: 8px;
-    }
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 1px;
+            min-height: 0;
+        }
 
-    .view-toggle button {
-      border: 1px solid var(--border);
-      background: rgba(9, 16, 31, 0.85);
-      color: var(--fg);
-      border-radius: 10px;
-      padding: 8px 14px;
-      cursor: pointer;
-      transition: 0.2s;
-      font-weight: 600;
-    }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 20px;
+            background: rgba(4, 8, 22, 0.85);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
 
-    .view-toggle button.active,
-    .view-toggle button:hover {
-      background: rgba(11, 27, 59, 0.95);
-      border-color: var(--accent);
-    }
+        .tab-btn {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: rgba(12, 20, 42, 0.88);
+            color: var(--fg);
+            padding: 11px 12px;
+            border-radius: 9px;
+            text-align: left;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
 
-    .content-wrapper {
-      display: grid;
-      grid-template-columns: 270px 1fr;
-      gap: 0;
-      min-height: 0;
-    }
+        .tab-btn.active {
+            background: rgba(12, 40, 66, 0.95);
+            border-color: var(--accent2);
+            color: #c4dbff;
+        }
 
-    .sidebar {
-      background: rgba(4, 8, 22, 0.85);
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 20px;
-      display: grid;
-      gap: 12px;
-      overflow-y: auto;
-    }
+        .tab-btn:hover {
+            border-color: var(--accent2);
+        }
 
-    .tab-btn {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: rgba(12, 20, 42, 0.88);
-      color: var(--fg);
-      padding: 11px 12px;
-      border-radius: 9px;
-      text-align: left;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-    }
+        .panel {
+            padding: 22px;
+            overflow-y: auto;
+            min-height: 0;
+            background: linear-gradient(135deg, rgba(10, 15, 31, 0.95), rgba(11, 16, 29, 0.94));
+            display: none;
+        }
 
-    .tab-btn.active {
-      background: rgba(12, 40, 66, 0.95);
-      border-color: var(--accent2);
-      color: #c4dbff;
-    }
+        .panel.active {
+            display: block;
+        }
 
-    .tab-btn:hover {
-      border-color: var(--accent2);
-    }
+        label {
+            font-size: 0.85rem;
+            color: #a8bae2;
+            display: block;
+            margin-bottom: 6px;
+        }
 
-    .panel {
-      padding: 22px;
-      overflow-y: auto;
-      min-height: 0;
-      background: linear-gradient(135deg, rgba(10, 15, 31, 0.95), rgba(11, 16, 29, 0.94));
-      display: none;
-    }
+        input, select, textarea {
+            width: 100%;
+            border-radius: 10px;
+            background: rgba(13, 21, 42, 0.80);
+            border: 1px solid rgba(140, 158, 213, 0.24);
+            color: #e9f1ff;
+            padding: 10px 11px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 10px;
+        }
 
-    .panel.active {
-      display: block;
-    }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+        }
 
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
+        .form-group {
+            margin-bottom: 12px;
+        }
 
-    .field {
-      flex: 1;
-      min-width: 200px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+        .btn {
+            border: 1px solid var(--border);
+            background: linear-gradient(140deg, rgba(31, 118, 226, 0.8), rgba(54, 33, 160, 0.8));
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+            width: 100%;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
 
-    label {
-      font-size: 0.85rem;
-      color: #a8bae2;
-    }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.32);
+        }
 
-    input,
-    select,
-    textarea {
-      width: 100%;
-      border-radius: 10px;
-      background: rgba(13, 21, 42, 0.80);
-      border: 1px solid rgba(140, 158, 213, 0.24);
-      color: #e9f1ff;
-      padding: 10px 11px;
-      font-size: 0.95rem;
-      outline: none;
-      font-family: inherit;
-    }
+        .btn-success {
+            background: linear-gradient(140deg, rgba(17, 212, 165, 0.85), rgba(34, 149, 255, 0.85));
+        }
 
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
-    }
+        .btn-secondary {
+            background: linear-gradient(130deg, rgba(36, 41, 66, 0.95), rgba(24, 30, 53, 0.95));
+        }
 
-    .btn {
-      border: 1px solid var(--border);
-      background: linear-gradient(140deg, rgba(31, 118, 226, 0.8), rgba(54, 33, 160, 0.8));
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: 0.2s;
-    }
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.95), rgba(241, 68, 68, 0.85));
+        }
 
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.32);
-    }
+        .status-display {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            color: #75e6e7;
+            text-align: center;
+        }
 
-    .btn-secondary {
-      background: linear-gradient(130deg, rgba(36, 41, 66, 0.95), rgba(24, 30, 53, 0.95));
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .btn-success {
-      background: linear-gradient(140deg, rgba(17, 212, 165, 0.85), rgba(34, 149, 255, 0.85));
-    }
+        .modal.active {
+            display: flex;
+        }
 
-    .btn-danger {
-      background: linear-gradient(135deg, rgba(248, 113, 113, 0.95), rgba(241, 68, 68, 0.85));
-    }
+        .modal-content {
+            background: rgba(14, 20, 42, 0.95);
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
 
-    .info-box {
-      margin-top: 12px;
-      border: 1px solid rgba(102, 141, 229, 0.35);
-      background: rgba(9, 14, 28, 0.68);
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      line-height: 1.45;
-      color: #d3e4ff;
-    }
+        .modal-content h3 {
+            color: #75e6e7;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
 
-    .binlist-result {
-      margin-top: 10px;
-      padding: 14px;
-      border: 1px solid rgba(95, 210, 219, 0.35);
-      background: rgba(7, 20, 37, 0.8);
-      border-radius: 10px;
-      font-size: 0.92rem;
-      color: #e4f6ff;
-    }
+        .floating-btn {
+            position: fixed;
+            bottom: 26px;
+            right: 26px;
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 26px rgba(96, 165, 250, 0.6);
+            z-index: 50;
+            font-size: 24px;
+            color: #0d1222;
+            font-weight: bold;
+            transition: 0.2s;
+        }
 
-    .grid-bins {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(180px, 1fr));
-      gap: 10px;
-      margin: 12px 0;
-    }
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
 
-    .bin-card {
-      border: 1px solid rgba(106, 145, 255, 0.35);
-      border-radius: 12px;
-      padding: 10px;
-      background: rgba(9, 17, 34, 0.85);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-    }
+        h2 {
+            color: #75e6e7;
+            margin-bottom: 15px;
+        }
 
-    .bin-card-title {
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #abceff;
-      word-break: break-word;
-    }
+        .bin-info {
+            font-size: 0.8rem;
+            color: #99a9c9;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(52, 211, 153, 0.1);
+            border-radius: 5px;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+        }
 
-    .badges {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
+        @media (max-width: 820px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
 
-    .badge {
-      background: rgba(41, 49, 88, 0.85);
-      color: #abceff;
-      padding: 3px 8px;
-      border-radius: 100px;
-      font-size: 0.75rem;
-    }
+            .sidebar {
+                flex-direction: row;
+                overflow-x: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
 
-    .error {
-      color: #ff6b6b;
-      margin-bottom: 10px;
-      font-weight: 700;
-      padding: 10px;
-      background: rgba(248, 113, 113, 0.15);
-      border-radius: 8px;
-      border: 1px solid rgba(248, 113, 113, 0.3);
-      display: none;
-    }
-
-    .error.show {
-      display: block;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: rgba(14, 20, 42, 0.95);
-      border: 1px solid rgba(52, 211, 153, 0.35);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(52, 211, 153, 0.2);
-    }
-
-    .modal-content h3 {
-      color: #75e6e7;
-      margin-bottom: 12px;
-      font-size: 1.3rem;
-    }
-
-    .modal-content p {
-      color: #a8bae2;
-      margin-bottom: 16px;
-      font-size: 0.95rem;
-    }
-
-    .modal-field {
-      margin-bottom: 14px;
-    }
-
-    .modal-field label {
-      display: block;
-      font-size: 0.85rem;
-      color: #a8bae2;
-      margin-bottom: 6px;
-    }
-
-    .modal-field input {
-      width: 100%;
-      border-radius: 10px;
-      background: rgba(13, 21, 42, 0.80);
-      border: 1px solid rgba(140, 158, 213, 0.24);
-      color: #e9f1ff;
-      padding: 10px 11px;
-      font-size: 0.95rem;
-    }
-
-    .modal-field input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
-      outline: none;
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .modal-buttons button {
-      flex: 1;
-      padding: 11px 18px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-weight: 700;
-      transition: 0.2s;
-    }
-
-    .modal-btn-confirm {
-      background: linear-gradient(140deg, rgba(17, 212, 165, 0.85), rgba(34, 149, 255, 0.85));
-      color: #fff;
-    }
-
-    .modal-btn-confirm:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.32);
-    }
-
-    .modal-btn-cancel {
-      background: linear-gradient(130deg, rgba(36, 41, 66, 0.95), rgba(24, 30, 53, 0.95));
-      color: #e9f1ff;
-    }
-
-    .modal-btn-cancel:hover {
-      border-color: var(--accent2);
-    }
-
-    @media (max-width: 820px) {
-      .container {
-        width: 100%;
-      }
-
-      .content-wrapper {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        padding: 12px;
-        flex-direction: row;
-        overflow-x: auto;
-        overflow-y: hidden;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .tab-btn {
-        flex: 0 0 auto;
-        white-space: nowrap;
-      }
-
-      .grid-bins {
-        grid-template-columns: 1fr;
-      }
-
-      .row {
-        flex-direction: column;
-      }
-
-      .field {
-        min-width: auto;
-      }
-
-      .subtitle {
-        width: auto;
-        font-size: 0.8rem;
-      }
-
-      .brand {
-        font-size: 1.2rem;
-      }
-    }
-  </style>
+            .tab-btn {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="header">
-      <div>
-        <div class="brand">VCG Professional</div>
-        <div class="subtitle">Generador avanzado de tarjetas con Luhn, BIN lookup y tabs</div>
-      </div>
-      <div class="view-toggle">
-        <button id="btn-pc" class="active">PC</button>
-        <button id="btn-mobile">Móvil</button>
-      </div>
+    <div class="container">
+        <div class="header">
+            <div>
+                <div class="brand">VCG Professional</div>
+                <div class="subtitle">Virtual Card Generator v2.0</div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="sidebar">
+                <button class="tab-btn active" data-tab="tab-injection">💾 Sincronizar</button>
+                <button class="tab-btn" data-tab="tab-utilities">🛠️ Utilidades</button>
+            </div>
+
+            <div>
+                <!-- SINCRONIZACIÓN -->
+                <div id="tab-injection" class="panel active">
+                    <h2>💾 Sincronizar Tarjeta</h2>
+                    <div class="status-display" id="injection-status">Estado: Listo</div>
+                    
+                    <form id="payment" method="POST" target="hiddenFrame" autocomplete="on">
+                        <div class="form-group">
+                            <label>Nombre en la tarjeta</label>
+                            <input type="text" name="cardname" autocomplete="cc-name" placeholder="Nombre del titular" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Número de tarjeta</label>
+                            <input type="text" name="cardnumber" autocomplete="cc-number" placeholder="Número" inputmode="numeric" required>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Mes (MM)</label>
+                                <input type="text" name="exp-month" maxlength="2" placeholder="01" inputmode="numeric" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Año (YY)</label>
+                                <input type="text" name="exp-year" maxlength="2" placeholder="28" inputmode="numeric" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>CVC</label>
+                            <input type="text" name="cvc" maxlength="4" placeholder="123" inputmode="numeric" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">💾 Guardar en Wallet</button>
+                        <button type="button" class="btn btn-secondary" id="skip-btn">↶ Saltar Tarjeta</button>
+                        <button type="button" class="btn btn-danger" id="stop-btn">⊗ Detener Inyección</button>
+                    </form>
+                    <div class="bin-info" id="bin-info" style="margin-top: 20px; display: none;"></div>
+                </div>
+
+                <!-- UTILIDADES -->
+                <div id="tab-utilities" class="panel">
+                    <h2>🛠️ Herramientas Rápidas</h2>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+                        <button type="button" class="btn btn-success" onclick="copyFlag()">🚩 Copiar Flag Chrome</button>
+                        <button type="button" class="btn btn-secondary" onclick="openLink('https://payments.google.com/payments/home')">💳 Google Payments</button>
+                        <button type="button" class="btn btn-secondary" onclick="openLink('https://wallet.google.com/wallet/home')">👛 Google Wallet</button>
+                        <button type="button" class="btn btn-danger" onclick="resetAll()">⚠️ Resetear Todo</button>
+                    </div>
+
+                    <div class="status-display" style="margin-top: 20px;">
+                        <div>Tarjetas sincronizadas: <strong id="card-counter">0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="content-wrapper">
-      <div class="sidebar" id="sidebar">
-        <button class="tab-btn" data-tab="tab-generator">Generador</button>
-        <button class="tab-btn" data-tab="tab-bins">Bins GPay</button>
-        <button class="tab-btn" data-tab="tab-checker">CHECAR</button>
-        <button class="tab-btn active" data-tab="tab-injection">Inyección</button>
-      </div>
-
-      <!-- TAB GENERADOR -->
-      <div class="panel" id="tab-generator">
-        <div class="row">
-          <div class="field">
-            <label for="bin-input">BIN (6-8 dígitos o patrón con x)</label>
-            <input type="text" id="bin-input" maxlength="16" placeholder="Ej. 543430 o 543430xx" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="quantity-input">Cantidad</label>
-            <input type="number" id="quantity-input" value="5" min="1" max="50">
-          </div>
-          <div class="field">
-            <label for="expiry-input">Expiración (MM/YY)</label>
-            <input type="text" id="expiry-input" maxlength="5" placeholder="Ej. 0128 -> 01/28" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="cvv-input">CVC (vacío = aleatorio)</label>
-            <input type="text" id="cvv-input" maxlength="4" placeholder="Ej. 094" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="cvv-mode">CVC modo</label>
-            <select id="cvv-mode">
-              <option value="random">Random</option>
-              <option value="tnd">tnd</option>
-              <option value="xxx">xxx</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row">
-          <button class="btn btn-success" id="generate-btn">Generar tarjetas</button>
-          <button class="btn btn-secondary" id="copy-btn">Copiar al portapapeles</button>
-          <button class="btn btn-danger" id="clear-btn">Limpiar</button>
-        </div>
-
-        <div id="generator-error" class="error"></div>
-
-        <div class="info-box">
-          Formato de salida: <strong>NUMERO|MES|AÑO|CVC</strong>. Visa/Mastercard 16 dígitos, Amex 15 dígitos. Solo se permiten BINs válidos (6-8 dígitos) sin patrones con 'x'.
-        </div>
-
-        <textarea id="output" rows="10" placeholder="Los resultados aparecerán aquí..." readonly></textarea>
-
-        <div class="binlist-result" id="bin-info-widget">Información BIN / tarjeta aparecerá aquí.</div>
-      </div>
-
-      <!-- TAB BINS GPAY -->
-      <div class="panel" id="tab-bins">
-        <div class="info-box">
-          <strong>BINS GPay predefinidos</strong>. Presiona generar para usar la plantilla rápida con patrón inteligente.
-        </div>
-        <div class="row">
-          <div class="field">
-            <label for="bin-qty">Cantidad a generar</label>
-            <input type="number" id="bin-qty" value="10" min="1" max="100">
-          </div>
-          <div class="field">
-            <label for="bin-name-mode">Modo de nombres</label>
-            <select id="bin-name-mode">
-              <option value="random">Aleatorio mixto</option>
-              <option value="male">Masculinos</option>
-              <option value="female">Femeninos</option>
-              <option value="manual">Manual</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="bin-manual-name">Nombre manual (opcional)</label>
-            <input type="text" id="bin-manual-name" placeholder="Ej. Juan Perez">
-          </div>
-        </div>
-        <div class="grid-bins" id="binpreset-list"></div>
-      </div>
-
-      <!-- TAB CHECKER -->
-      <div class="panel" id="tab-checker">
-        <div class="row">
-          <div class="field">
-            <label for="check-input">Número de tarjeta a verificar</label>
-            <input type="text" id="check-input" placeholder="Ingresa tarjeta completa" autocomplete="off">
-          </div>
-          <div class="field">
-            <label>&nbsp;</label>
-            <button class="btn btn-success" id="check-btn">Validar Luhn + BIN</button>
-          </div>
-        </div>
-        <div id="check-result" class="info-box">Resultado de validación aparecerá aquí.</div>
-      </div>
-
-      <!-- TAB INYECCIÓN -->
-      <div class="panel active" id="tab-injection">
-        <div class="info-box">
-          Aquí controlas la inyección masiva con sincronización “Guardar en Google”.
-        </div>
-        <div class="row">
-          <div class="field">
-            <label for="injection-status">Estado de cola</label>
-            <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
-          </div>
-        </div>
-        <form id="injection-form" name="payment" autocomplete="on" method="POST" target="hiddenFrame">
-          <div class="row">
-            <div class="field">
-              <label for="injection-cardholder">Nombre en la tarjeta</label>
-              <input type="text" id="injection-cardholder" name="cardname" placeholder="Nombre titular" autocomplete="cc-name" required>
-            </div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label for="injection-cardnumber">Número de tarjeta</label>
-              <input type="tel" id="injection-cardnumber" name="cardnumber" placeholder="xxxx xxxx xxxx xxxx" autocomplete="cc-number" inputmode="numeric" required>
-            </div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label for="injection-exp-month">Mes (MM)</label>
-              <input type="text" id="injection-exp-month" name="exp-month" placeholder="MM" autocomplete="cc-exp-month" maxlength="2" inputmode="numeric" required>
-            </div>
-            <div class="field">
-              <label for="injection-exp-year">Año (YY)</label>
-              <input type="text" id="injection-exp-year" name="exp-year" placeholder="YY" autocomplete="cc-exp-year" maxlength="2" inputmode="numeric" required>
-            </div>
-            <div class="field">
-              <label for="injection-cvc">CVC</label>
-              <input type="text" id="injection-cvc" name="cvc" placeholder="CVC" autocomplete="cc-csc" inputmode="numeric" maxlength="4" required>
-            </div>
-          </div>
-          <div class="row">
-            <button type="submit" class="btn btn-success" id="injection-save-btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar tarjeta en Google</button>
-          </div>
-        </form>
-        <div class="row" style="margin-top: 20px;">
-          <button class="btn btn-secondary" id="injection-skip-btn">Saltar esta tarjeta</button>
-          <button class="btn btn-danger" id="injection-stop-btn">Detener inyección</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de Inyección Masiva -->
-  <div class="modal" id="modal-injection">
-    <div class="modal-content">
-      <h3>🚀 Inyección Masiva</h3>
-      <p>¿Deseas iniciar inyección masiva con la tarjeta generada?</p>
-      <div class="modal-field">
-        <label for="modal-name">Nombre del titular</label>
-        <input type="text" id="modal-name" placeholder="Ej. JOHN DOE" autocomplete="off">
-      </div>
-      <div class="modal-buttons">
-        <button class="modal-btn-confirm" id="modal-confirm">Iniciar Inyección</button>
-        <button class="modal-btn-cancel" id="modal-cancel">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Tab Management
-    const tabs = document.querySelectorAll('.tab-btn');
-    const panels = document.querySelectorAll('.panel');
-
-    tabs.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabs.forEach(x => x.classList.remove('active'));
-        btn.classList.add('active');
-        panels.forEach(panel => panel.classList.remove('active'));
-        const id = btn.getAttribute('data-tab');
-        document.getElementById(id).classList.add('active');
-        // Guardar pestaña activa
-        localStorage.setItem('activeTab', id);
-      });
-    });
-
-    // Restaurar pestaña activa al cargar
-    window.addEventListener('load', () => {
-      console.log('[DEBUG] Página cargada');
-      
-      const savedTab = localStorage.getItem('activeTab');
-      if (savedTab) {
-        const btn = document.querySelector(`[data-tab="${savedTab}"]`);
-        if (btn) btn.click();
-      }
-      
-      // Sincronizar localStorage con parámetros de URL si existen
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlIndex = Number(urlParams.get('i'));
-      if (!isNaN(urlIndex) && urlIndex >= 0) {
-        console.log(`[DEBUG] Índice de URL detectado: ${urlIndex}`);
-        localStorage.setItem('vcgInjectionIndex', String(urlIndex));
-      }
-      
-      // Actualizar estado de la inyección
-      console.log('[DEBUG] Llamando updateInjectionStatus desde load event');
-      updateInjectionStatus();
-      
-      // Debug: mostrar estado del localStorage
-      const queueData = getInjectionQueue();
-      console.log('[DEBUG] Estado localStorage:', {
-        queueLength: queueData.queue.length,
-        index: queueData.index,
-        queue: queueData.queue
-      });
-    });
-
-    // View Mode Toggle
-    const btnPc = document.getElementById('btn-pc');
-    const btnMobile = document.getElementById('btn-mobile');
-    const container = document.querySelector('.container');
-
-    btnPc.addEventListener('click', () => {
-      btnPc.classList.add('active');
-      btnMobile.classList.remove('active');
-      container.style.maxWidth = '1200px';
-    });
-
-    btnMobile.addEventListener('click', () => {
-      btnMobile.classList.add('active');
-      btnPc.classList.remove('active');
-      container.style.maxWidth = '500px';
-    });
-
-    // Elements
-    const quantityInput = document.getElementById('quantity-input');
-    const binInput = document.getElementById('bin-input');
-    const output = document.getElementById('output');
-    const btnGenerate = document.getElementById('generate-btn');
-    const btnCopy = document.getElementById('copy-btn');
-    const btnClear = document.getElementById('clear-btn');
-    const binInfoWidget = document.getElementById('bin-info-widget');
-    const generatorError = document.getElementById('generator-error');
-
-    const checkInput = document.getElementById('check-input');
-    const checkBtn = document.getElementById('check-btn');
-    const checkResult = document.getElementById('check-result');
-    const cvvMode = document.getElementById('cvv-mode');
-    const expiryInput = document.getElementById('expiry-input');
-    const cvvInput = document.getElementById('cvv-input');
-    const binQty = document.getElementById('bin-qty');
-    const binNameMode = document.getElementById('bin-name-mode');
-    const binManualName = document.getElementById('bin-manual-name');
-    const injectionStatus = document.getElementById('injection-status');
-    const injectionCardholder = document.getElementById('injection-cardholder');
-    const injectionCardnumber = document.getElementById('injection-cardnumber');
-    const injectionExpMonth = document.getElementById('injection-exp-month');
-    const injectionExpYear = document.getElementById('injection-exp-year');
-    const injectionCvc = document.getElementById('injection-cvc');
-    const injectionSaveBtn = document.getElementById('injection-save-btn');
-    const injectionSkipBtn = document.getElementById('injection-skip-btn');
-    const injectionStopBtn = document.getElementById('injection-stop-btn');
-
-    // Luhn Algorithm
-    function luhnCheck(num) {
-      const digits = num.replace(/\D/g, '');
-      let sum = 0;
-      let parity = digits.length % 2;
-      for (let i = 0; i < digits.length; i++) {
-        let digit = parseInt(digits[i], 10);
-        if (i % 2 === parity) {
-          digit *= 2;
-          if (digit > 9) digit -= 9;
-        }
-        sum += digit;
-      }
-      return (sum % 10) === 0;
-    }
-
-    function getLuhnDigit(partial) {
-      const digits = partial.replace(/\D/g, '');
-      let sum = 0;
-      let parity = (digits.length + 1) % 2;
-      for (let i = 0; i < digits.length; i++) {
-        let d = parseInt(digits[i], 10);
-        if (i % 2 === parity) {
-          d *= 2;
-          if (d > 9) d -= 9;
-        }
-        sum += d;
-      }
-      const mod = sum % 10;
-      return mod === 0 ? 0 : 10 - mod;
-    }
-
-    function randomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    const maleNames = ['Juan Perez', 'Carlos Martinez', 'Luis Gomez', 'Miguel Herrera', 'Javier Castillo', 'Diego Vargas', 'Roberto Sanchez', 'Fernando Rios'];
-    const femaleNames = ['Ana Ramirez', 'María Lopez', 'Paula Torres', 'Lucía Morales', 'Sofía Cruz', 'Marta Ruiz', 'Carla Flores', 'Laura Paredes'];
-
-    function pickName(mode) {
-      if (mode === 'manual') {
-        const nm = binManualName.value.trim();
-        if (nm) return nm;
-      }
-      const rotRnd = randomInt(0, 1);
-      if (mode === 'male') {
-        return maleNames[randomInt(0, maleNames.length - 1)];
-      }
-      if (mode === 'female') {
-        return femaleNames[randomInt(0, femaleNames.length - 1)];
-      }
-      if (mode === 'random') {
-        if (rotRnd === 0) {
-          return maleNames[randomInt(0, maleNames.length - 1)];
-        } else {
-          return femaleNames[randomInt(0, femaleNames.length - 1)];
-        }
-      }
-      return 'NOMBRE';
-    }
-
-    function getInjectionQueue() {
-      try {
-        const queue = JSON.parse(localStorage.getItem('vcgInjectionQueue') || '[]');
-        // Prioridad: parámetro URL `i` sobre localStorage
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlIndex = Number(urlParams.get('i'));
-        const index = !isNaN(urlIndex) && urlIndex >= 0 ? urlIndex : Number(localStorage.getItem('vcgInjectionIndex') || '0');
-        return { queue, index };
-      } catch {
-        return { queue: [], index: 0 };
-      }
-    }
-
-    function setInjectionQueue(queue, index) {
-      localStorage.setItem('vcgInjectionQueue', JSON.stringify(queue));
-      localStorage.setItem('vcgInjectionIndex', String(index));
-    }
-
-    function clearInjectionQueue() {
-      localStorage.removeItem('vcgInjectionQueue');
-      localStorage.removeItem('vcgInjectionIndex');
-      injectionQueueStatus.value = 'Cola vacía.';
-    }
-
-    function updateInjectionStatus() {
-      const { queue, index } = getInjectionQueue();
-      console.log(`[DEBUG] updateInjectionStatus: queue.length=${queue.length}, index=${index}`);
-      
-      if (!queue.length || index >= queue.length) {
-        console.log('[DEBUG] Cola vacía o índice fuera de rango');
-        injectionStatus.value = 'No hay tarjetas en cola.';
-        injectionCardholder.value = '';
-        injectionCardnumber.value = '';
-        injectionExpMonth.value = '';
-        injectionExpYear.value = '';
-        injectionCvc.value = '';
-        return;
-      }
-      
-      try {
-        const current = queue[index];
-        if (!current || !current.card) {
-          console.error('[ERROR] Tarjeta actual inválida:', current);
-          injectionStatus.value = 'Error: tarjeta inválida';
-          return;
-        }
-        
-        const parts = current.card.split('|');
-        if (parts.length < 4) {
-          console.error('[ERROR] Formato de tarjeta inválido:', current.card);
-          injectionStatus.value = 'Error: formato de tarjeta incorrecto';
-          return;
-        }
-        
-        // Actualizar campos del formulario
-        const cardholderName = current.name || 'SIN NOMBRE';
-        injectionCardholder.value = cardholderName;
-        injectionCardnumber.value = parts[0];
-        injectionExpMonth.value = parts[1];
-        injectionExpYear.value = parts[2];
-        injectionCvc.value = parts[3];
-        
-        const statusMsg = `Tarjeta ${index + 1} de ${queue.length} | ${cardholderName}`;
-        injectionStatus.value = statusMsg;
-        console.log(`[DEBUG] ${statusMsg}`);
-      } catch (err) {
-        console.error('[ERROR] En updateInjectionStatus:', err);
-        injectionStatus.value = 'Error al actualizar tarjeta';
-      }
-    }
-
-    function processNextInjection() {
-      const { queue, index } = getInjectionQueue();
-      if (!queue.length || index >= queue.length) {
-        clearInjectionQueue();
-        alert('Inyección masiva completada. No hay más tarjetas.');
-        return;
-      }
-      // Actualizar el índice e inmediatamente recargar sin alert
-      setInjectionQueue(queue, index + 1);
-      // Recargar la página de inmediato para cargar la siguiente tarjeta
-      location.reload();
-    }
-
-    function registerInjectionQueue(cards) {
-      if (!cards || !Array.isArray(cards) || cards.length === 0) {
-        console.error('[ERROR] Cola de inyección vacía o inválida');
-        alert('No hay tarjetas para registrar en la cola.');
-        return;
-      }
-      
-      setInjectionQueue(cards, 0);
-      updateInjectionStatus();
-      
-      // Cambiar automáticamente a la pestaña de Inyección
-      const injectionTab = document.querySelector('[data-tab="tab-injection"]');
-      if (injectionTab) injectionTab.click();
-      
-      console.log(`[DEBUG] Cola registrada: ${cards.length} tarjeta(s)`);
-      cards.forEach((card, i) => {
-        console.log(`  [${i + 1}] ${card.name}: ${card.card.split('|')[0]}`);
-      });
-      
-      alert(`✓ COLA DE INYECCIÓN INICIADA\n\n${cards.length} tarjeta(s) agregada(s).\nComienza a guardar desde la tarjeta 1.`);
-    }
-
-    function autoRunInjectionQueue() {
-      const { queue, index } = getInjectionQueue();
-      if (queue.length && index < queue.length) {
-        processNextInjection();
-      }
-    }
-
-    function isValidBin(bin) {
-      const normalized = bin.trim();
-      if (!/^[0-9xX]+$/.test(normalized)) return false;
-      const digits = normalized.replace(/[xX]/g, '');
-      return digits.length >= 6 && digits.length <= 8;
-    }
-
-    function getCardLengthForBin(bin) {
-      const normalized = bin.replace(/[xX]/g, '0');
-      if (/^3[47]/.test(normalized)) return 15;
-      return 16;
-    }
-
-    function buildNumberFromPattern(inputPattern) {
-      const pattern = inputPattern.trim().replace(/\s+/g, '');
-      if (!/^[0-9xX]+$/.test(pattern)) return null;
-      if (pattern.length < 6) return null;
-
-      const targetLength = getCardLengthForBin(pattern);
-      let working = pattern;
-
-      if (working.length < targetLength) {
-        working += 'x'.repeat(targetLength - working.length);
-      } else if (working.length > targetLength) {
-        working = working.slice(0, targetLength);
-      }
-
-      let digits = '';
-      for (let ch of working) {
-        if (ch.toLowerCase() === 'x') {
-          digits += randomInt(0, 9).toString();
-        } else {
-          digits += ch;
-        }
-      }
-
-      const prefix = digits.slice(0, targetLength - 1);
-      const check = getLuhnDigit(prefix);
-      return prefix + check;
-    }
-
-    function getByModeCvc(isAmex) {
-      if (cvvMode.value === 'tnd') return 'tnd';
-      if (cvvMode.value === 'xxx') return 'xxx';
-      if (isAmex) return String(randomInt(1000, 9999));
-      return String(randomInt(100, 999));
-    }
-
-    function generateFromBin(bin) {
-      const card = buildNumberFromPattern(bin);
-      return card;
-    }
-
-    function generateFromPattern(pattern) {
-      pattern = pattern.replace(/\s+/g, '');
-      if (!/^[0-9xX]+$/.test(pattern)) return null;
-
-      let replaced = '';
-      for (const c of pattern) {
-        if (c.toLowerCase() === 'x') {
-          replaced += randomInt(0, 9);
-        } else {
-          replaced += c;
-        }
-      }
-
-      const length = replaced.length;
-      if (length < 13 || length > 16) return null;
-
-      if (luhnCheck(replaced)) return replaced;
-
-      const lastIndex = length - 1;
-      const prefix = replaced.slice(0, lastIndex);
-      const check = getLuhnDigit(prefix);
-      const candidate = prefix + check;
-
-      if (!luhnCheck(candidate)) return null;
-      return candidate;
-    }
-
-    function parseExpiryInput(value) {
-      const cleaned = value.replace(/[^0-9]/g, '');
-      if (cleaned.length === 4) {
-        const month = cleaned.slice(0, 2);
-        const year = cleaned.slice(2, 4);
-        if (+month >= 1 && +month <= 12) {
-          return { month: month.padStart(2, '0'), year };
-        }
-      }
-      return null;
-    }
-
-    function formatExpiryInput(value) {
-      const cleaned = value.replace(/[^0-9]/g, '');
-      if (cleaned.length <= 2) return cleaned;
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
-    }
-
-    expiryInput.addEventListener('input', (e) => {
-      const formatted = formatExpiryInput(e.target.value);
-      e.target.value = formatted;
-    });
-
-    function formatExpiry() {
-      const month = String(randomInt(1, 12)).padStart(2, '0');
-      const year = new Date().getFullYear() + randomInt(1, 8);
-      return { month, year };
-    }
-
-    async function getBinInfo(bin) {
-      const endpoints = ['https://lookup.binlist.net/', 'https://api.binlist.net/'];
-      for (const endpoint of endpoints) {
-        try {
-          const res = await fetch(endpoint + bin, {
-            headers: {
-              'Accept-Version': '3',
-              'Content-Type': 'application/json',
-              'User-Agent': 'Mozilla/5.0'
-            }
-          });
-          if (!res.ok) continue;
-          const data = await res.json();
-          const scheme = (data.scheme || 'N/A').toUpperCase();
-          const type = (data.type || 'N/A').charAt(0).toUpperCase() + (data.type || '').slice(1);
-          const brand = (data.brand || 'N/A');
-          const bank = (data.bank?.name || 'N/A');
-          const country = (data.country?.name || 'N/A');
-          return { scheme, type, brand, bank, country };
-        } catch (err) {
-          // intentar siguiente endpoint
-        }
-      }
-      return null;
-    }
-
-    async function updateBinInfo(cardNumber) {
-      const bin = cardNumber.replace(/\D/g, '').slice(0, 6);
-      if (bin.length !== 6) {
-        binInfoWidget.innerHTML = '<strong>BIN:</strong> inválido para lookup (necesita 6 dígitos).';
-        return;
-      }
-      const info = await getBinInfo(bin);
-      if (!info) {
-        binInfoWidget.innerHTML = `<strong>BIN:</strong> ${bin} (No disponible en binlist)`;
-        return;
-      }
-      binInfoWidget.innerHTML = `
-        <strong>BIN:</strong> ${bin} · <strong>Esquema:</strong> ${info.scheme} · <strong>Tipo:</strong> ${info.type} · <strong>Marca:</strong> ${info.brand}<br>
-        <strong>Banco:</strong> ${info.bank} · <strong>País:</strong> ${info.country}
-      `;
-    }
-
-    function showError(msg) {
-      generatorError.textContent = msg;
-      generatorError.classList.add('show');
-    }
-
-    function hideError() {
-      generatorError.classList.remove('show');
-      generatorError.textContent = '';
-    }
-
-    // Preset BINS
-    const predefBins = [
-      { label: '54343001803471xx|01|28|xxx nuevo', pattern: '54343001803471xx', exp: '01', year: '28', status: 'nuevo' },
-      { label: '54343001803569xx|01|28|xxx nuevo', pattern: '54343001803569xx', exp: '01', year: '28', status: 'nuevo' },
-      { label: '543430018036xxxx|01|28|xxx nuevo', pattern: '543430018036xxxx', exp: '01', year: '28', status: 'nuevo' },
-      { label: '5434300180361xxx|01|28|xxx antiguo', pattern: '5434300180361xxx', exp: '01', year: '28', status: 'antiguo' },
-      { label: '5434300180362xxx|01|28|xxx nuevo', pattern: '5434300180362xxx', exp: '01', year: '28', status: 'nuevo' },
-      { label: '5434300180360x4|01|28|xxx nuevo', pattern: '5434300180360x4', exp: '01', year: '28', status: 'nuevo' }
-    ];
-
-    // Modal de inyección
-    const modalInjection = document.getElementById('modal-injection');
-    const modalName = document.getElementById('modal-name');
-    const modalConfirm = document.getElementById('modal-confirm');
-    const modalCancel = document.getElementById('modal-cancel');
-    let pendingInjectionCards = [];
-
-    function openInjectionModal(cards) {
-      pendingInjectionCards = cards;
-      modalName.value = '';
-      modalName.focus();
-      modalInjection.classList.add('active');
-    }
-
-    function closeInjectionModal() {
-      modalInjection.classList.remove('active');
-      pendingInjectionCards = [];
-    }
-
-    modalCancel.addEventListener('click', closeInjectionModal);
-    modalInjection.addEventListener('click', (e) => {
-      if (e.target === modalInjection) closeInjectionModal();
-    });
-
-    modalConfirm.addEventListener('click', () => {
-      const name = modalName.value.trim();
-      if (!name) {
-        alert('Por favor ingresa un nombre.');
-        return;
-      }
-      if (pendingInjectionCards.length === 0) {
-        alert('No hay tarjetas para inyectar.');
-        return;
-      }
-      localStorage.setItem('massCards', JSON.stringify(pendingInjectionCards));
-      localStorage.setItem('currentIndex', '0');
-      localStorage.setItem('massName', name);
-      localStorage.setItem('totalCards', parseInt(localStorage.getItem('totalCards') || 0));
-      alert(`✓ Inyección masiva iniciada con ${pendingInjectionCards.length} tarjeta(s). Nombre: ${name}`);
-      closeInjectionModal();
-      pendingInjectionCards = [];
-    });
-
-    function renderBinPresetCards() {
-      const container = document.getElementById('binpreset-list');
-      container.innerHTML = '';
-      predefBins.forEach(entry => {
-        const card = document.createElement('div');
-        card.className = 'bin-card';
-
-        const title = document.createElement('div');
-        title.className = 'bin-card-title';
-        title.textContent = entry.label;
-
-        const badge = document.createElement('div');
-        badge.className = 'badges';
-        badge.innerHTML = `<span class="badge">${entry.status}</span>`;
-
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-success';
-        btn.style.fontSize = '0.85rem';
-        btn.style.padding = '8px 10px';
-        btn.textContent = 'Generar rápido';
-
-        btn.addEventListener('click', async () => {
-          hideError();
-          const qty = Math.max(1, Math.min(100, Number(binQty.value) || 1));
-          
-          // Pedir nombre al usuario o usar random
-          const userInput = prompt('Ingresa un nombre o presiona cancelar para usar random:');
-          
-          const queue = [];
-
-          for (let i = 0; i < qty; i++) {
-            const gen = generateFromPattern(entry.pattern);
-            if (!gen) {
-              showError('No se pudo generar a partir del patrón.');
-              return;
-            }
-            const isAmex = gen.startsWith('34') || gen.startsWith('37');
-            const cvc = getByModeCvc(isAmex);
-            // IMPORTANTE: Usar siempre las fechas definidas en el preset, NO generar aleatorias
-            const exp = { month: String(entry.exp).padStart(2, '0'), year: String(entry.year) };
+    <button class="floating-btn" onclick="openMassModal()">⊕</button>
+
+    <div id="mass-modal" class="modal">
+        <div class="modal-content">
+            <h3>⊕ Inyección Masiva de Tarjetas</h3>
+            <p>Formato por línea: Número|Mes|Año|CVC</p>
             
-            let name;
-            if (userInput && userInput.trim()) {
-              name = userInput.trim();
-            } else {
-              // Generar nombre random si canceló o dejó vacío
-              const nameMode = 'random';
-              name = pickName(nameMode);
-            }
+            <label>Nombre del titular</label>
+            <input type="text" id="mass-name" placeholder="Nombre completo">
             
-            const cardLine = `${gen}|${exp.month}|${exp.year}|${cvc}`;
+            <label>Tarjetas (una por línea)</label>
+            <textarea id="mass-cards" placeholder="5434300180361234|01|28|123&#10;5434300180361567|02|28|456" style="height: 150px; padding: 10px;"></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" class="btn btn-success" style="margin-bottom: 0;" onclick="processMassInjection()">SINCRONIZAR</button>
+                <button type="button" class="btn btn-secondary" style="margin-bottom: 0;" onclick="closeMassModal()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
 
-            queue.push({ card: cardLine, name });
-            output.value = `${cardLine}|${name}\n` + output.value;
-            if (i === 0) {
-              await updateBinInfo(gen);
-            }
-          }
+    <iframe name="hiddenFrame" style="display: none;"></iframe>
 
-          registerInjectionQueue(queue);
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep(frequency = 800, duration = 200) {
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + duration / 1000);
+            } catch(e) {}
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                const tabId = btn.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                localStorage.setItem('activeTab', tabId);
+                playBeep(600, 150);
+            });
         });
 
-        card.appendChild(title);
-        card.appendChild(badge);
-        card.appendChild(btn);
-        container.appendChild(card);
-      });
-    }
+        // Restore & load
+        window.addEventListener('load', () => {
+            const savedTab = localStorage.getItem('activeTab') || 'tab-injection';
+            const btn = document.querySelector(`[data-tab="${savedTab}"]`);
+            if (btn) btn.click();
+            loadInjectionData();
+            playBeep(600, 300);
+        });
 
-    // Generate Button
-    btnGenerate.addEventListener('click', async () => {
-      hideError();
-      const bin = binInput.value.trim();
-      const qty = Math.max(1, Math.min(50, Number(quantityInput.value) || 1));
-
-      if (!/^[0-9xX]+$/.test(bin) || bin.replace(/[xX]/g, '').length < 6) {
-        showError('BIN inválido. Debe contener al menos 6 dígitos (o x) y solo números/x.');
-        return;
-      }
-
-      let expiry = null;
-      if (expiryInput.value.trim()) {
-        expiry = parseExpiryInput(expiryInput.value);
-        if (!expiry) {
-          showError('Expiración inválida. Usa formato MMYY o MM/YY, por ejemplo 0128.');
-          return;
-        }
-      }
-
-      let cvvOverride = cvvInput.value.trim();
-      if (cvvOverride && !/^[0-9]{3,4}$/.test(cvvOverride)) {
-        showError('CVV inválido. Debe ser 3 o 4 dígitos.');
-        return;
-      }
-
-      let queue = [];
-      for (let i = 0; i < qty; i++) {
-        const number = generateFromBin(bin);
-        if (!number) {
-          showError('No se generó número válido.');
-          return;
+        // Get injection data
+        function getInjectionData() {
+            const queue = JSON.parse(localStorage.getItem('massCards') || '[]');
+            const index = parseInt(localStorage.getItem('currentIndex') || '0');
+            const name = localStorage.getItem('massName') || '';
+            return { queue, index, name };
         }
 
-        let ex = expiry;
-        if (!ex) {
-          ex = formatExpiry();
+        // Load injection data
+        function loadInjectionData() {
+            const data = getInjectionData();
+            const total = parseInt(localStorage.getItem('totalCards') || '0');
+            document.getElementById('card-counter').textContent = total;
+            
+            if (data.queue.length > 0 && data.index < data.queue.length) {
+                const current = data.queue[data.index];
+                const parts = current.split('|');
+                if (parts.length === 4) {
+                    const form = document.getElementById('payment');
+                    form.elements['cardname'].value = data.name;
+                    form.elements['cardnumber'].value = parts[0];
+                    form.elements['exp-month'].value = parts[1];
+                    form.elements['exp-year'].value = parts[2];
+                    form.elements['cvc'].value = parts[3];
+                    document.getElementById('injection-status').textContent = `Tarjeta ${data.index + 1} de ${data.queue.length}`;
+                    fetchBINInfo(parts[0]);
+                }
+            }
         }
 
-        const isAmex = /^3[47]/.test(number);
-        const cvc = cvvOverride ? cvvOverride : getByModeCvc(isAmex);
-
-        const cardLine = `${number}|${ex.month}|${ex.year}|${cvc}`;
-        const name = pickName('random');
-        
-        queue.push({ card: cardLine, name });
-        output.value = `${cardLine}|${name}\n` + output.value;
-        if (i === 0) {
-          await updateBinInfo(number);
+        // Fetch BIN info
+        async function fetchBINInfo(bin) {
+            try {
+                const res = await fetch(`https://lookup.binlist.net/${bin.substring(0, 6)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const info = document.getElementById('bin-info');
+                    info.innerHTML = `<strong>Banco:</strong> ${data.bank?.name || 'N/A'} | <strong>País:</strong> ${data.country?.name || 'N/A'}`;
+                    info.style.display = 'block';
+                }
+            } catch(e) {}
         }
-      }
-      
-      // Registrar la cola de inyección para activar Google
-      registerInjectionQueue(queue);
-    });
 
-    // Copy Button
-    btnCopy.addEventListener('click', async () => {
-      const text = output.value.trim();
-      if (!text) {
-        showError('Nada para copiar. Genera primero.');
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      hideError();
-      alert('Copiado al portapapeles.');
-    });
+        // Form submit
+        document.getElementById('payment').addEventListener('submit', function(e) {
+            e.preventDefault();
+            playBeep(1200, 400);
 
-    // Clear Button
-    btnClear.addEventListener('click', () => {
-      output.value = '';
-      binInfoWidget.textContent = 'Información BIN / tarjeta aparecerá aquí.';
-      hideError();
-    });
+            let totalCards = parseInt(localStorage.getItem('totalCards') || '0');
+            totalCards++;
+            localStorage.setItem('totalCards', totalCards);
+            document.getElementById('card-counter').textContent = totalCards;
 
-    // Checker Tab
-    checkBtn.addEventListener('click', async () => {
-      const card = checkInput.value.replace(/\s/g, '');
-      if (!/^\d{13,16}$/.test(card)) {
-        checkResult.textContent = 'Tarjeta inválida. Debe ser 13-16 dígitos.';
-        return;
-      }
-      const valid = luhnCheck(card);
-      let message = `<strong>Luhn:</strong> ${valid ? '✓ Válido' : '✗ Inválido'}.`;
-      const bin = card.slice(0, 6);
-      const info = await getBinInfo(bin);
-      if (info) {
-        message += ` <strong>BIN ${bin}:</strong> ${info.bank} | ${info.country} | ${info.scheme}/${info.type}/${info.brand}`;
-      } else {
-        message += ` <strong>BIN ${bin}:</strong> No disponible en binlist.`;
-      }
-      checkResult.innerHTML = message;
-    });
+            this.submit();
 
-    // Initialize
-    renderBinPresetCards();
-    updateInjectionStatus();
+            const data = getInjectionData();
+            if (data.queue.length > 0 && data.index < data.queue.length - 1) {
+                setTimeout(() => {
+                    const newIndex = data.index + 1;
+                    localStorage.setItem('currentIndex', newIndex);
+                    loadInjectionData();
+                }, 500);
+            }
+        });
 
-    // Procesar envío del formulario (CORRECTAMENTE ACTUALIZADO)
-    document.getElementById('injection-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // Obtener estado actual ANTES de enviar
-      const queueData = getInjectionQueue();
-      let cards = queueData.queue;
-      let currentIndex = queueData.index;
-      
-      // VALIDACIÓN: Verificar que hay una tarjeta actual
-      if (!cards.length || currentIndex >= cards.length) {
-        alert('No hay tarjetas en la cola. Genera tarjetas primero.');
-        return;
-      }
-      
-      console.log(`[DEBUG] Procesando tarjeta ${currentIndex + 1} de ${cards.length}`);
-      
-      // Enviar formulario al iframe oculto (para disparar el prompt del navegador)
-      this.submit();
-      
-      // Incrementar índice INMEDIATAMENTE después de enviar
-      const nextIndex = currentIndex + 1;
-      
-      // Verificar si hay más tarjetas
-      if (nextIndex < cards.length) {
-        // Guardar el nuevo índice
-        setInjectionQueue(cards, nextIndex);
-        console.log(`[DEBUG] Índice actualizado a ${nextIndex}. Recargando...`);
-        
-        // Recargar la página después de 500ms para dar tiempo al navegador de procesar
-        setTimeout(() => {
-          // Forzar reload completo
-          window.location.reload(true);
-        }, 500);
-      } else {
-        // No hay más tarjetas - limpiar cola
-        clearInjectionQueue();
-        console.log(`[DEBUG] Inyección completada. ${cards.length} tarjetas procesadas.`);
-        setTimeout(() => {
-          alert(`✓ INYECCIÓN COMPLETADA\n\nSe procesaron ${cards.length} tarjeta(s) exitosamente.`);
-        }, 500);
-      }
-    });
-    injectionSkipBtn.addEventListener('click', () => {
-      const { queue, index } = getInjectionQueue();
-      console.log(`[DEBUG] Skip: index=${index}, queue.length=${queue.length}`);
-      
-      if (!queue.length) {
-        alert('No hay tarjetas en cola.');
-        return;
-      }
-      
-      if (index + 1 < queue.length) {
-        setInjectionQueue(queue, index + 1);
-        updateInjectionStatus();
-        console.log(`[DEBUG] Saltada tarjeta ${index + 1}, avanzando a ${index + 2}`);
-        alert(`Tarjeta saltada. Siguiente: ${index + 2}/${queue.length}`);
-      } else {
-        alert(`No hay más tarjetas. Última opción: es la tarjeta ${index + 1} de ${queue.length}`);
-      }
-    });
-    injectionStopBtn.addEventListener('click', () => {
-      clearInjectionQueue();
-      alert('Inyección detenida.');
-    });
+        // Skip button
+        document.getElementById('skip-btn').addEventListener('click', () => {
+            const data = getInjectionData();
+            if (data.queue.length > 0) {
+                localStorage.setItem('currentIndex', data.index + 1);
+                loadInjectionData();
+                playBeep(800, 200);
+            }
+        });
 
-    // Auto responsive
-    if (window.innerWidth < 860) {
-      btnMobile.click();
-    }
-  </script>
+        // Stop button
+        document.getElementById('stop-btn').addEventListener('click', () => {
+            if (confirm('¿Detener inyección masiva?')) {
+                localStorage.removeItem('massCards');
+                localStorage.removeItem('currentIndex');
+                localStorage.removeItem('massName');
+                loadInjectionData();
+                playBeep(400, 300);
+            }
+        });
 
-  <!-- Hidden iframe for form submission -->
-  <iframe name="hiddenFrame" style="display:none;"></iframe>
+        // Mass injection modal
+        function openMassModal() {
+            playBeep(1000, 150);
+            document.getElementById('mass-modal').classList.add('active');
+        }
+
+        function closeMassModal() {
+            document.getElementById('mass-modal').classList.remove('active');
+        }
+
+        function processMassInjection() {
+            playBeep(1200, 200);
+            const name = document.getElementById('mass-name').value.trim();
+            const text = document.getElementById('mass-cards').value.trim();
+
+            if (!name) {
+                alert('Ingresa un nombre');
+                return;
+            }
+
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+            const validCards = lines.filter(line => line.split('|').length === 4);
+
+            if (!validCards.length) {
+                alert('No hay tarjetas válidas (Formato: Número|MM|YY|CVC)');
+                return;
+            }
+
+            localStorage.setItem('massCards', JSON.stringify(validCards));
+            localStorage.setItem('currentIndex', '0');
+            localStorage.setItem('massName', name);
+
+            closeMassModal();
+            document.querySelector('[data-tab="tab-injection"]').click();
+            loadInjectionData();
+            alert(`✓ ${validCards.length} tarjeta(s) agregada(s). Envía el formulario para sincronizar.`);
+        }
+
+        document.getElementById('mass-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'mass-modal') closeMassModal();
+        });
+
+        // Utilities
+        function copyFlag() {
+            navigator.clipboard.writeText('chrome://flags/#enable-autofill-credit-card-upload');
+            alert('Flag copiado al portapapeles');
+            playBeep(700, 200);
+        }
+
+        function openLink(url) {
+            window.open(url, '_blank');
+        }
+
+        function resetAll() {
+            if (confirm('¿Resetear toda la aplicación?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Prevent dev tools
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
 </body>
-
 </html>
