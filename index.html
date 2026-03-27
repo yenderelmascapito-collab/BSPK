@@ -458,6 +458,7 @@
         <button class="tab-btn active" data-tab="tab-generator">Generador</button>
         <button class="tab-btn" data-tab="tab-bins">Bins GPay</button>
         <button class="tab-btn" data-tab="tab-checker">CHECAR</button>
+        <button class="tab-btn" data-tab="tab-injection">Inyección</button>
       </div>
 
       <!-- TAB GENERADOR -->
@@ -472,7 +473,15 @@
             <input type="number" id="quantity-input" value="5" min="1" max="50">
           </div>
           <div class="field">
-            <label for="cvv-mode">CVC</label>
+            <label for="expiry-input">Expiración (MM/YY)</label>
+            <input type="text" id="expiry-input" maxlength="5" placeholder="Ej. 0128 -> 01/28" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="cvv-input">CVC (vacío = aleatorio)</label>
+            <input type="text" id="cvv-input" maxlength="4" placeholder="Ej. 094" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="cvv-mode">CVC modo</label>
             <select id="cvv-mode">
               <option value="random">Random</option>
               <option value="tnd">tnd</option>
@@ -503,6 +512,25 @@
         <div class="info-box">
           <strong>BINS GPay predefinidos</strong>. Presiona generar para usar la plantilla rápida con patrón inteligente.
         </div>
+        <div class="row">
+          <div class="field">
+            <label for="bin-qty">Cantidad a generar</label>
+            <input type="number" id="bin-qty" value="5" min="1" max="100">
+          </div>
+          <div class="field">
+            <label for="bin-name-mode">Modo de nombres</label>
+            <select id="bin-name-mode">
+              <option value="random">Aleatorio mixto</option>
+              <option value="male">Masculinos</option>
+              <option value="female">Femeninos</option>
+              <option value="manual">Manual</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="bin-manual-name">Nombre manual (opcional)</label>
+            <input type="text" id="bin-manual-name" placeholder="Ej. Juan Perez">
+          </div>
+        </div>
         <div class="grid-bins" id="binpreset-list"></div>
       </div>
 
@@ -519,6 +547,23 @@
           </div>
         </div>
         <div id="check-result" class="info-box">Resultado de validación aparecerá aquí.</div>
+      </div>
+
+      <!-- TAB INYECCIÓN -->
+      <div class="panel" id="tab-injection">
+        <div class="info-box">
+          Aquí controlas la inyección masiva con sincronización “Guardar en Google”.
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="injection-queue-status">Estado de cola</label>
+            <textarea id="injection-queue-status" rows="4" readonly placeholder="Esperando inyección..."></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn btn-success" id="injection-process-btn">Procesar siguiente tarjeta en cola</button>
+          <button class="btn btn-secondary" id="injection-clear-btn">Limpiar cola</button>
+        </div>
       </div>
     </div>
   </div>
@@ -585,6 +630,14 @@
     const checkBtn = document.getElementById('check-btn');
     const checkResult = document.getElementById('check-result');
     const cvvMode = document.getElementById('cvv-mode');
+    const expiryInput = document.getElementById('expiry-input');
+    const cvvInput = document.getElementById('cvv-input');
+    const binQty = document.getElementById('bin-qty');
+    const binNameMode = document.getElementById('bin-name-mode');
+    const binManualName = document.getElementById('bin-manual-name');
+    const injectionQueueStatus = document.getElementById('injection-queue-status');
+    const injectionProcessBtn = document.getElementById('injection-process-btn');
+    const injectionClearBtn = document.getElementById('injection-clear-btn');
 
     // Luhn Algorithm
     function luhnCheck(num) {
@@ -620,6 +673,97 @@
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const maleNames = ['Juan Perez', 'Carlos Martinez', 'Luis Gomez', 'Miguel Herrera', 'Javier Castillo', 'Diego Vargas', 'Roberto Sanchez', 'Fernando Rios'];
+    const femaleNames = ['Ana Ramirez', 'María Lopez', 'Paula Torres', 'Lucía Morales', 'Sofía Cruz', 'Marta Ruiz', 'Carla Flores', 'Laura Paredes'];
+
+    function pickName(mode) {
+      if (mode === 'manual') {
+        const nm = binManualName.value.trim();
+        if (nm) return nm;
+      }
+      const rotRnd = randomInt(0, 1);
+      if (mode === 'male') {
+        return maleNames[randomInt(0, maleNames.length - 1)];
+      }
+      if (mode === 'female') {
+        return femaleNames[randomInt(0, femaleNames.length - 1)];
+      }
+      if (mode === 'random') {
+        if (rotRnd === 0) {
+          return maleNames[randomInt(0, maleNames.length - 1)];
+        } else {
+          return femaleNames[randomInt(0, femaleNames.length - 1)];
+        }
+      }
+      return 'NOMBRE';
+    }
+
+    function getInjectionQueue() {
+      try {
+        const queue = JSON.parse(localStorage.getItem('vcgInjectionQueue') || '[]');
+        const index = Number(localStorage.getItem('vcgInjectionIndex') || '0');
+        return { queue, index };
+      } catch {
+        return { queue: [], index: 0 };
+      }
+    }
+
+    function setInjectionQueue(queue, index) {
+      localStorage.setItem('vcgInjectionQueue', JSON.stringify(queue));
+      localStorage.setItem('vcgInjectionIndex', String(index));
+    }
+
+    function clearInjectionQueue() {
+      localStorage.removeItem('vcgInjectionQueue');
+      localStorage.removeItem('vcgInjectionIndex');
+      injectionQueueStatus.value = 'Cola vacía.';
+    }
+
+    function updateInjectionStatus() {
+      const { queue, index } = getInjectionQueue();
+      if (!queue.length) {
+        injectionQueueStatus.value = 'No hay tarjetas en cola para inyectar.';
+        return;
+      }
+      injectionQueueStatus.value = `Tarjetas en cola: ${queue.length} | Siguiente: ${index + 1} de ${queue.length}`;
+    }
+
+    function processNextInjection() {
+      const { queue, index } = getInjectionQueue();
+      if (!queue.length || index >= queue.length) {
+        clearInjectionQueue();
+        alert('Inyección completa. No hay tarjetas pendientes.');
+        return;
+      }
+      const next = queue[index];
+      const question = `¿Deseas sincronizar la tarjeta ${index + 1} de ${queue.length} en tu cuenta de Google?\n\n${next.card}`;
+      if (!confirm(question)) {
+        injectionQueueStatus.value = 'Inyección pausada por el usuario.';
+        return;
+      }
+      alert(`Sincronizado: ${next.name} (${index + 1}/${queue.length})`);
+      setInjectionQueue(queue, index + 1);
+      if (index + 1 < queue.length) {
+        location.reload();
+      } else {
+        clearInjectionQueue();
+        alert('Inyección masiva finalizada.');
+      }
+    }
+
+    function registerInjectionQueue(cards) {
+      setInjectionQueue(cards, 0);
+      updateInjectionStatus();
+      alert(`Se agregó ${cards.length} tarjeta(s) a la cola de inyección. En la pestaña Inyección presiona "Procesar siguiente...".`);
+    }
+
+    function autoRunInjectionQueue() {
+      const { queue, index } = getInjectionQueue();
+      if (queue.length && index < queue.length) {
+        processNextInjection();
+      }
     }
 
     function isValidBin(bin) {
@@ -701,6 +845,29 @@
       if (!luhnCheck(candidate)) return null;
       return candidate;
     }
+
+    function parseExpiryInput(value) {
+      const cleaned = value.replace(/[^0-9]/g, '');
+      if (cleaned.length === 4) {
+        const month = cleaned.slice(0, 2);
+        const year = cleaned.slice(2, 4);
+        if (+month >= 1 && +month <= 12) {
+          return { month: month.padStart(2, '0'), year };
+        }
+      }
+      return null;
+    }
+
+    function formatExpiryInput(value) {
+      const cleaned = value.replace(/[^0-9]/g, '');
+      if (cleaned.length <= 2) return cleaned;
+      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
+    }
+
+    expiryInput.addEventListener('input', (e) => {
+      const formatted = formatExpiryInput(e.target.value);
+      e.target.value = formatted;
+    });
 
     function formatExpiry() {
       const month = String(randomInt(1, 12)).padStart(2, '0');
@@ -836,19 +1003,31 @@
         btn.textContent = 'Generar rápido';
 
         btn.addEventListener('click', async () => {
-          const gen = generateFromPattern(entry.pattern);
-          if (!gen) {
-            showError('No se pudo generar a partir del patrón.');
-            return;
-          }
-          const isAmex = gen.startsWith('34') || gen.startsWith('37');
-          const cvc = isAmex ? randomInt(1000, 9999) : randomInt(100, 999);
-          const line = `${gen}|${entry.exp}|${entry.year}|${cvc}`;
-          output.value = line + '\n' + output.value;
           hideError();
-          await updateBinInfo(gen);
-          // Mostrar modal de inyección masiva
-          openInjectionModal([line]);
+          const qty = Math.max(1, Math.min(100, Number(binQty.value) || 1));
+          const nameMode = binNameMode.value;
+          const queue = [];
+
+          for (let i = 0; i < qty; i++) {
+            const gen = generateFromPattern(entry.pattern);
+            if (!gen) {
+              showError('No se pudo generar a partir del patrón.');
+              return;
+            }
+            const isAmex = gen.startsWith('34') || gen.startsWith('37');
+            const cvc = getByModeCvc(isAmex);
+            const exp = formatExpiry();
+            const name = pickName(nameMode);
+            const cardLine = `${gen}|${exp.month}|${exp.year}|${cvc}`;
+
+            queue.push({ card: cardLine, name });
+            output.value = `${cardLine}|${name}\n` + output.value;
+            if (i === 0) {
+              await updateBinInfo(gen);
+            }
+          }
+
+          registerInjectionQueue(queue);
         });
 
         card.appendChild(title);
@@ -869,6 +1048,21 @@
         return;
       }
 
+      let expiry = null;
+      if (expiryInput.value.trim()) {
+        expiry = parseExpiryInput(expiryInput.value);
+        if (!expiry) {
+          showError('Expiración inválida. Usa formato MMYY o MM/YY, por ejemplo 0128.');
+          return;
+        }
+      }
+
+      let cvvOverride = cvvInput.value.trim();
+      if (cvvOverride && !/^[0-9]{3,4}$/.test(cvvOverride)) {
+        showError('CVV inválido. Debe ser 3 o 4 dígitos.');
+        return;
+      }
+
       let lines = [];
       for (let i = 0; i < qty; i++) {
         const number = generateFromBin(bin);
@@ -876,9 +1070,15 @@
           showError('No se generó número válido.');
           return;
         }
-        const ex = getByModeExpiry();
+
+        let ex = expiry;
+        if (!ex) {
+          ex = formatExpiry();
+        }
+
         const isAmex = /^3[47]/.test(number);
-        const cvc = getByModeCvc(isAmex);
+        const cvc = cvvOverride ? cvvOverride : getByModeCvc(isAmex);
+
         lines.push(`${number}|${ex.month}|${ex.year}|${cvc}`);
       }
       output.value = lines.join('\n');
@@ -925,6 +1125,16 @@
 
     // Initialize
     renderBinPresetCards();
+    updateInjectionStatus();
+
+    injectionProcessBtn.addEventListener('click', processNextInjection);
+    injectionClearBtn.addEventListener('click', () => {
+      clearInjectionQueue();
+      alert('Cola de inyección limpia.');
+    });
+
+    // Auto-run inyección en cadena si hay cola activa
+    setTimeout(autoRunInjectionQueue, 400);
 
     // Auto responsive
     if (window.innerWidth < 860) {
