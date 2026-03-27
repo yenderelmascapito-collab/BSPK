@@ -639,6 +639,16 @@
         const btn = document.querySelector(`[data-tab="${savedTab}"]`);
         if (btn) btn.click();
       }
+      
+      // Sincronizar localStorage con parámetros de URL si existen
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlIndex = Number(urlParams.get('i'));
+      if (!isNaN(urlIndex) && urlIndex >= 0) {
+        localStorage.setItem('vcgInjectionIndex', String(urlIndex));
+      }
+      
+      // Actualizar estado de la inyección
+      updateInjectionStatus();
     });
 
     // View Mode Toggle
@@ -751,7 +761,10 @@
     function getInjectionQueue() {
       try {
         const queue = JSON.parse(localStorage.getItem('vcgInjectionQueue') || '[]');
-        const index = Number(localStorage.getItem('vcgInjectionIndex') || '0');
+        // Prioridad: parámetro URL `i` sobre localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlIndex = Number(urlParams.get('i'));
+        const index = !isNaN(urlIndex) && urlIndex >= 0 ? urlIndex : Number(localStorage.getItem('vcgInjectionIndex') || '0');
         return { queue, index };
       } catch {
         return { queue: [], index: 0 };
@@ -1195,16 +1208,23 @@
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        // Actualizar el índice ANTES de recargar
-        setInjectionQueue(queue, index + 1);
+        // Cambiar dinámicamente el action del formulario para que la URL sea diferente cada vez
+        const form = document.getElementById('injection-form');
+        const nextIndex = index + 1;
+        const timestamp = Date.now(); // Timestamp para forzar que Chrome no cachee
+        form.action = `?i=${nextIndex}&t=${timestamp}`;
+        
+        // Focus en cualquier campo para señal a Chrome
+        injectionCardnumber.focus();
+        
+        // Pequeño delay para simular comportamiento humano y dar tiempo a Chrome
+        setTimeout(() => {
+          // Usar navigateTo en lugar de location.reload() para ir a la nueva URL con parámetros
+          window.location.href = window.location.pathname + `?i=${nextIndex}&t=${timestamp}`;
+        }, 300);
+      } else {
+        location.reload();
       }
-      // Cambiar el name del formulario para que Chrome lo vea como nuevo formulario
-      const form = document.getElementById('injection-form');
-      form.name = 'payment-' + Date.now();
-      // Resetear el formulario para que Chrome lo reconozca como nuevo
-      form.reset();
-      // Recargar INMEDIATAMENTE la misma página - Chrome procesa el prompt en paralelo
-      location.reload();
     });
     injectionSkipBtn.addEventListener('click', () => {
       const { queue, index } = getInjectionQueue();
