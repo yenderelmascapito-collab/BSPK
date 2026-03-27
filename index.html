@@ -1198,6 +1198,11 @@
         // Actualizar el índice ANTES de recargar
         setInjectionQueue(queue, index + 1);
       }
+      // Cambiar el name del formulario para que Chrome lo vea como nuevo formulario
+      const form = document.getElementById('injection-form');
+      form.name = 'payment-' + Date.now();
+      // Resetear el formulario para que Chrome lo reconozca como nuevo
+      form.reset();
       // Recargar INMEDIATAMENTE la misma página - Chrome procesa el prompt en paralelo
       location.reload();
     });
