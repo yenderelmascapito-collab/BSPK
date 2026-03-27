@@ -819,7 +819,10 @@
     function registerInjectionQueue(cards) {
       setInjectionQueue(cards, 0);
       updateInjectionStatus();
-      alert(`Se agregó ${cards.length} tarjeta(s) a la cola de inyección. En la pestaña Inyección presiona "Procesar siguiente...".`);
+      // Cambiar automáticamente a la pestaña de Inyección
+      const injectionTab = document.querySelector('[data-tab="tab-injection"]');
+      if (injectionTab) injectionTab.click();
+      alert(`Se agregó ${cards.length} tarjeta(s) a la cola de inyección.`);
     }
 
     function autoRunInjectionQueue() {
