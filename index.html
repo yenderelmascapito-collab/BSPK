@@ -634,6 +634,8 @@
 
     // Restaurar pestaña activa al cargar
     window.addEventListener('load', () => {
+      console.log('[DEBUG] Página cargada');
+      
       const savedTab = localStorage.getItem('activeTab');
       if (savedTab) {
         const btn = document.querySelector(`[data-tab="${savedTab}"]`);
@@ -644,11 +646,21 @@
       const urlParams = new URLSearchParams(window.location.search);
       const urlIndex = Number(urlParams.get('i'));
       if (!isNaN(urlIndex) && urlIndex >= 0) {
+        console.log(`[DEBUG] Índice de URL detectado: ${urlIndex}`);
         localStorage.setItem('vcgInjectionIndex', String(urlIndex));
       }
       
       // Actualizar estado de la inyección
+      console.log('[DEBUG] Llamando updateInjectionStatus desde load event');
       updateInjectionStatus();
+      
+      // Debug: mostrar estado del localStorage
+      const queueData = getInjectionQueue();
+      console.log('[DEBUG] Estado localStorage:', {
+        queueLength: queueData.queue.length,
+        index: queueData.index,
+        queue: queueData.queue
+      });
     });
 
     // View Mode Toggle
@@ -784,7 +796,10 @@
 
     function updateInjectionStatus() {
       const { queue, index } = getInjectionQueue();
+      console.log(`[DEBUG] updateInjectionStatus: queue.length=${queue.length}, index=${index}`);
+      
       if (!queue.length || index >= queue.length) {
+        console.log('[DEBUG] Cola vacía o índice fuera de rango');
         injectionStatus.value = 'No hay tarjetas en cola.';
         injectionCardholder.value = '';
         injectionCardnumber.value = '';
@@ -793,14 +808,37 @@
         injectionCvc.value = '';
         return;
       }
-      const current = queue[index];
-      const parts = current.card.split('|');
-      injectionCardholder.value = current.name;
-      injectionCardnumber.value = parts[0];
-      injectionExpMonth.value = parts[1];
-      injectionExpYear.value = parts[2];
-      injectionCvc.value = parts[3];
-      injectionStatus.value = `Tarjeta ${index + 1} de ${queue.length}`;
+      
+      try {
+        const current = queue[index];
+        if (!current || !current.card) {
+          console.error('[ERROR] Tarjeta actual inválida:', current);
+          injectionStatus.value = 'Error: tarjeta inválida';
+          return;
+        }
+        
+        const parts = current.card.split('|');
+        if (parts.length < 4) {
+          console.error('[ERROR] Formato de tarjeta inválido:', current.card);
+          injectionStatus.value = 'Error: formato de tarjeta incorrecto';
+          return;
+        }
+        
+        // Actualizar campos del formulario
+        const cardholderName = current.name || 'SIN NOMBRE';
+        injectionCardholder.value = cardholderName;
+        injectionCardnumber.value = parts[0];
+        injectionExpMonth.value = parts[1];
+        injectionExpYear.value = parts[2];
+        injectionCvc.value = parts[3];
+        
+        const statusMsg = `Tarjeta ${index + 1} de ${queue.length} | ${cardholderName}`;
+        injectionStatus.value = statusMsg;
+        console.log(`[DEBUG] ${statusMsg}`);
+      } catch (err) {
+        console.error('[ERROR] En updateInjectionStatus:', err);
+        injectionStatus.value = 'Error al actualizar tarjeta';
+      }
     }
 
     function processNextInjection() {
@@ -817,12 +855,25 @@
     }
 
     function registerInjectionQueue(cards) {
+      if (!cards || !Array.isArray(cards) || cards.length === 0) {
+        console.error('[ERROR] Cola de inyección vacía o inválida');
+        alert('No hay tarjetas para registrar en la cola.');
+        return;
+      }
+      
       setInjectionQueue(cards, 0);
       updateInjectionStatus();
+      
       // Cambiar automáticamente a la pestaña de Inyección
       const injectionTab = document.querySelector('[data-tab="tab-injection"]');
       if (injectionTab) injectionTab.click();
-      alert(`Se agregó ${cards.length} tarjeta(s) a la cola de inyección.`);
+      
+      console.log(`[DEBUG] Cola registrada: ${cards.length} tarjeta(s)`);
+      cards.forEach((card, i) => {
+        console.log(`  [${i + 1}] ${card.name}: ${card.card.split('|')[0]}`);
+      });
+      
+      alert(`✓ COLA DE INYECCIÓN INICIADA\n\n${cards.length} tarjeta(s) agregada(s).\nComienza a guardar desde la tarjeta 1.`);
     }
 
     function autoRunInjectionQueue() {
@@ -1214,37 +1265,65 @@
     renderBinPresetCards();
     updateInjectionStatus();
 
-    // Procesar envío del formulario (EXACTAMENTE COMO lol.html)
+    // Procesar envío del formulario (CORRECTAMENTE ACTUALIZADO)
     document.getElementById('injection-form').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Submit the form to the hidden iframe to trigger browser save prompt
+      // Obtener estado actual ANTES de enviar
+      const queueData = getInjectionQueue();
+      let cards = queueData.queue;
+      let currentIndex = queueData.index;
+      
+      // VALIDACIÓN: Verificar que hay una tarjeta actual
+      if (!cards.length || currentIndex >= cards.length) {
+        alert('No hay tarjetas en la cola. Genera tarjetas primero.');
+        return;
+      }
+      
+      console.log(`[DEBUG] Procesando tarjeta ${currentIndex + 1} de ${cards.length}`);
+      
+      // Enviar formulario al iframe oculto (para disparar el prompt del navegador)
       this.submit();
       
-      if (localStorage.getItem('vcgInjectionQueue')) {
-        let cards = JSON.parse(localStorage.getItem('vcgInjectionQueue'));
-        let index = parseInt(localStorage.getItem('vcgInjectionIndex') || 0);
-        index++;
-        if (index < cards.length) {
-          localStorage.setItem('vcgInjectionIndex', index);
-          setTimeout(() => location.reload(), 1000); // Wait 1 second for the prompt
-        } else {
-          localStorage.removeItem('vcgInjectionQueue');
-          localStorage.removeItem('vcgInjectionIndex');
-          setTimeout(() => alert('✓ Todas las tarjetas han sido procesadas.'), 1000);
-        }
+      // Incrementar índice INMEDIATAMENTE después de enviar
+      const nextIndex = currentIndex + 1;
+      
+      // Verificar si hay más tarjetas
+      if (nextIndex < cards.length) {
+        // Guardar el nuevo índice
+        setInjectionQueue(cards, nextIndex);
+        console.log(`[DEBUG] Índice actualizado a ${nextIndex}. Recargando...`);
+        
+        // Recargar la página después de 500ms para dar tiempo al navegador de procesar
+        setTimeout(() => {
+          // Forzar reload completo
+          window.location.reload(true);
+        }, 500);
       } else {
-        setTimeout(() => alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.'), 1000);
+        // No hay más tarjetas - limpiar cola
+        clearInjectionQueue();
+        console.log(`[DEBUG] Inyección completada. ${cards.length} tarjetas procesadas.`);
+        setTimeout(() => {
+          alert(`✓ INYECCIÓN COMPLETADA\n\nSe procesaron ${cards.length} tarjeta(s) exitosamente.`);
+        }, 500);
       }
     });
     injectionSkipBtn.addEventListener('click', () => {
       const { queue, index } = getInjectionQueue();
-      if (queue.length && index + 1 < queue.length) {
+      console.log(`[DEBUG] Skip: index=${index}, queue.length=${queue.length}`);
+      
+      if (!queue.length) {
+        alert('No hay tarjetas en cola.');
+        return;
+      }
+      
+      if (index + 1 < queue.length) {
         setInjectionQueue(queue, index + 1);
         updateInjectionStatus();
-        alert('Tarjeta saltada. Siguiente...');
+        console.log(`[DEBUG] Saltada tarjeta ${index + 1}, avanzando a ${index + 2}`);
+        alert(`Tarjeta saltada. Siguiente: ${index + 2}/${queue.length}`);
       } else {
-        alert('No hay más tarjetas.');
+        alert(`No hay más tarjetas. Última opción: es la tarjeta ${index + 1} de ${queue.length}`);
       }
     });
     injectionStopBtn.addEventListener('click', () => {
