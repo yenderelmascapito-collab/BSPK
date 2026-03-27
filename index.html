@@ -1203,25 +1203,20 @@
     renderBinPresetCards();
     updateInjectionStatus();
 
-    // Prevenir envío real del formulario pero procesar nuestro flujo
+    // Procesar envío del formulario
     document.getElementById('injection-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        // Cambiar dinámicamente el action del formulario para que la URL sea diferente cada vez
         const form = document.getElementById('injection-form');
         const nextIndex = index + 1;
-        const timestamp = Date.now(); // Timestamp para forzar que Chrome no cachee
+        const timestamp = Date.now();
+        
+        // Cambiar action a la URL con parámetros
         form.action = `?i=${nextIndex}&t=${timestamp}`;
         
-        // Focus en cualquier campo para señal a Chrome
-        injectionCardnumber.focus();
-        
-        // Pequeño delay para simular comportamiento humano y dar tiempo a Chrome
-        setTimeout(() => {
-          // Usar navigateTo en lugar de location.reload() para ir a la nueva URL con parámetros
-          window.location.href = window.location.pathname + `?i=${nextIndex}&t=${timestamp}`;
-        }, 300);
+        // Enviar el formulario para que Chrome procese el prompt
+        form.submit();
       } else {
         location.reload();
       }
