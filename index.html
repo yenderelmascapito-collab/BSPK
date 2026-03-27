@@ -1434,41 +1434,56 @@
         .btn,
         .btn-success,
         .btn-secondary,
-        .btn-danger {
+        .btn-danger,
+        .btn-outline {
             border-radius: 14px;
             padding: 13px 18px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
             border: 1px solid transparent;
         }
 
         .btn {
-            background: linear-gradient(140deg, rgba(31, 118, 226, 0.85), rgba(54, 33, 160, 0.85));
+            background: linear-gradient(140deg, rgba(31, 118, 226, 0.95), rgba(66, 47, 170, 0.95));
             color: #fff;
         }
 
         .btn-success {
-            background: linear-gradient(140deg, rgba(17, 212, 165, 0.9), rgba(34, 149, 255, 0.9));
+            background: linear-gradient(140deg, rgba(17, 212, 165, 0.95), rgba(56, 181, 255, 0.95));
             color: #07101f;
         }
 
         .btn-secondary {
-            background: linear-gradient(140deg, rgba(36, 41, 66, 0.95), rgba(24, 30, 53, 0.95));
+            background: linear-gradient(140deg, rgba(44, 50, 79, 0.95), rgba(26, 33, 61, 0.95));
             color: #e9efff;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, rgba(248, 113, 113, 0.95), rgba(241, 68, 68, 0.85));
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.95), rgba(241, 68, 68, 0.95));
             color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #dbe7ff;
         }
 
         .btn:hover,
         .btn-success:hover,
         .btn-secondary:hover,
-        .btn-danger:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        .btn-danger:hover,
+        .btn-outline:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
         }
 
         .badge {
@@ -1491,10 +1506,18 @@
         .bin-card {
             display: grid;
             gap: 12px;
-            padding: 18px;
-            border-radius: 16px;
-            border: 1px solid rgba(116, 138, 255, 0.24);
-            background: rgba(10, 18, 34, 0.92);
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid rgba(116, 138, 255, 0.28);
+            background: rgba(7, 14, 28, 0.96);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .bin-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(116, 138, 255, 0.55);
         }
 
         .bin-card-title {
@@ -1502,6 +1525,15 @@
             color: #dbe7ff;
             line-height: 1.4;
             word-break: break-word;
+        }
+
+        .panel.active {
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .output-area {
@@ -1713,37 +1745,55 @@
                                     <div class="bin-card-title">54343001803471xx</div>
                                     <div>Exp: 01/28</div>
                                     <div class="badge">nuevo</div>
-                                    <button class="btn btn-secondary bin-quick-btn" type="button">Generar rápido</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary bin-random-btn" type="button">Random</button>
+                                        <button class="btn btn-outline bin-manual-btn" type="button">Manual</button>
+                                    </div>
                                 </div>
                                 <div class="bin-card" data-pattern="54343001803569xx" data-exp-month="01" data-exp-year="28" data-state="nuevo">
                                     <div class="bin-card-title">54343001803569xx</div>
                                     <div>Exp: 01/28</div>
                                     <div class="badge">nuevo</div>
-                                    <button class="btn btn-secondary bin-quick-btn" type="button">Generar rápido</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary bin-random-btn" type="button">Random</button>
+                                        <button class="btn btn-outline bin-manual-btn" type="button">Manual</button>
+                                    </div>
                                 </div>
                                 <div class="bin-card" data-pattern="543430018036xxxx" data-exp-month="01" data-exp-year="28" data-state="nuevo">
                                     <div class="bin-card-title">543430018036xxxx</div>
                                     <div>Exp: 01/28</div>
                                     <div class="badge">nuevo</div>
-                                    <button class="btn btn-secondary bin-quick-btn" type="button">Generar rápido</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary bin-random-btn" type="button">Random</button>
+                                        <button class="btn btn-outline bin-manual-btn" type="button">Manual</button>
+                                    </div>
                                 </div>
                                 <div class="bin-card" data-pattern="5434300180361xxx" data-exp-month="01" data-exp-year="28" data-state="antiguo">
                                     <div class="bin-card-title">5434300180361xxx</div>
                                     <div>Exp: 01/28</div>
                                     <div class="badge">antiguo</div>
-                                    <button class="btn btn-secondary bin-quick-btn" type="button">Generar rápido</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary bin-random-btn" type="button">Random</button>
+                                        <button class="btn btn-outline bin-manual-btn" type="button">Manual</button>
+                                    </div>
                                 </div>
                                 <div class="bin-card" data-pattern="5434300180362xxx" data-exp-month="01" data-exp-year="28" data-state="nuevo">
                                     <div class="bin-card-title">5434300180362xxx</div>
                                     <div>Exp: 01/28</div>
                                     <div class="badge">nuevo</div>
-                                    <button class="btn btn-secondary bin-quick-btn" type="button">Generar rápido</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary bin-random-btn" type="button">Random</button>
+                                        <button class="btn btn-outline bin-manual-btn" type="button">Manual</button>
+                                    </div>
                                 </div>
                                 <div class="bin-card" data-pattern="5434300180360x4" data-exp-month="01" data-exp-year="28" data-state="nuevo">
                                     <div class="bin-card-title">5434300180360x4</div>
                                     <div>Exp: 01/28</div>
                                     <div class="badge">nuevo</div>
-                                    <button class="btn btn-secondary bin-quick-btn" type="button">Generar rápido</button>
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary bin-random-btn" type="button">Random</button>
+                                        <button class="btn btn-outline bin-manual-btn" type="button">Manual</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1846,32 +1896,46 @@
     </div>
     <script>
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        function playBeep(frequency = 800, duration = 200, type = 'sine') {
+        function playBeep(frequency = 880, duration = 240, type = 'triangle') {
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
             oscillator.frequency.value = frequency;
             oscillator.type = type;
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration / 1000);
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0.18, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+            oscillator.start(now);
+            oscillator.stop(now + duration / 1000);
         }
-        function fetchBIN(bin) {
-            if (bin.length >= 6) {
-                fetch('https://lookup.binlist.net/' + bin.substring(0, 6))
-                    .then(response => response.json())
-                    .then(data => {
-                        let info = `Banco: ${data.bank?.name || 'Desconocido'}<br>Tipo: ${data.type || 'Desconocido'}<br>Marca: ${data.brand || 'Desconocida'}<br>País: ${data.country?.name || 'Desconocido'}`;
-                        document.getElementById('bin-info').innerHTML = info;
-                    })
-                    .catch(err => {
-                        document.getElementById('bin-info').innerHTML = 'Error al obtener info BIN';
-                    });
-            } else {
+
+        function playToneSequence(notes = [440, 660], duration = 180, type = 'sine') {
+            const now = audioContext.currentTime;
+            const gainNode = audioContext.createGain();
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.setValueAtTime(0.16, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + (duration * notes.length) / 1000);
+            notes.forEach((freq, index) => {
+                const osc = audioContext.createOscillator();
+                osc.connect(gainNode);
+                osc.frequency.setValueAtTime(freq, now + (index * duration) / 1000);
+                osc.type = type;
+                osc.start(now + (index * duration) / 1000);
+                osc.stop(now + ((index + 1) * duration) / 1000);
+            });
+        }
+        async function fetchBIN(bin) {
+            if (!bin || bin.length < 6) {
                 document.getElementById('bin-info').innerHTML = 'Info BIN aparecerá aquí';
+                return;
             }
+            const info = await getBinInfo(bin.substring(0, 6));
+            if (!info) {
+                document.getElementById('bin-info').innerHTML = 'Error al obtener info BIN';
+                return;
+            }
+            document.getElementById('bin-info').innerHTML = `Banco: ${info.bank}<br>Tipo: ${info.type}<br>Marca: ${info.scheme}<br>País: ${info.country}`;
         }
         function updateCardNumber(value) {
             document.querySelector('.card-number').textContent = value || '#### #### #### ####';
@@ -2358,10 +2422,9 @@ document.getElementById('modal').addEventListener('click', function(e) {
                 try {
                     const res = await fetch(endpoint + bin, {
                         headers: {
-                            'Accept-Version': '3',
-                            'Content-Type': 'application/json',
-                            'User-Agent': 'Mozilla/5.0'
-                        }
+                            'Accept-Version': '3'
+                        },
+                        mode: 'cors'
                     });
                     if (!res.ok) continue;
                     const data = await res.json();
@@ -2526,10 +2589,10 @@ document.getElementById('modal').addEventListener('click', function(e) {
             alert(`✓ COLA DE INYECCIÓN INICIADA\n\n${cards.length} tarjeta(s) agregada(s).`);
         }
 
-        function generatePresetQueue(pattern, expMonth, expYear, cvcMode) {
+        function generatePresetQueue(pattern, expMonth, expYear, cvcMode, nameMode = null, manualNameOverride = '') {
             const qty = Number(document.getElementById('bins-quantity').value) || 10;
-            const mode = document.getElementById('bins-name-mode').value;
-            const manualName = document.getElementById('bins-manual-name').value.trim();
+            const mode = nameMode || document.getElementById('bins-name-mode').value;
+            const manualName = nameMode === 'manual' ? manualNameOverride.trim() : document.getElementById('bins-manual-name').value.trim();
             if (mode === 'manual' && !manualName) {
                 alert('Ingresa un nombre manual antes de generar.');
                 return;
@@ -2549,11 +2612,24 @@ document.getElementById('modal').addEventListener('click', function(e) {
             storeInjectionQueue(cards, name);
         }
 
-        document.querySelectorAll('.bin-quick-btn').forEach(button => {
+        document.querySelectorAll('.bin-random-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const card = this.closest('.bin-card');
                 if (!card) return;
-                generatePresetQueue(card.dataset.pattern, card.dataset.expMonth, card.dataset.expYear, card.dataset.state === 'antiguo' ? 'xxx' : 'random');
+                generatePresetQueue(card.dataset.pattern, card.dataset.expMonth, card.dataset.expYear, card.dataset.state === 'antiguo' ? 'xxx' : 'random', 'random');
+            });
+        });
+
+        document.querySelectorAll('.bin-manual-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const card = this.closest('.bin-card');
+                if (!card) return;
+                const manualName = prompt('Ingrese el nombre manual para esta tarjeta:');
+                if (!manualName || !manualName.trim()) {
+                    alert('Debe ingresar un nombre manual válido.');
+                    return;
+                }
+                generatePresetQueue(card.dataset.pattern, card.dataset.expMonth, card.dataset.expYear, card.dataset.state === 'antiguo' ? 'xxx' : 'random', 'manual', manualName);
             });
         });
 
@@ -2563,7 +2639,8 @@ document.getElementById('modal').addEventListener('click', function(e) {
                 alert('No hay BINs disponibles.');
                 return;
             }
-            generatePresetQueue(card.dataset.pattern, card.dataset.expMonth, card.dataset.expYear, 'random');
+            const cvcMode = card.dataset.state === 'antiguo' ? 'xxx' : 'random';
+            generatePresetQueue(card.dataset.pattern, card.dataset.expMonth, card.dataset.expYear, cvcMode);
         });
 
         document.getElementById('skip-btn').addEventListener('click', function () {
