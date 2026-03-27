@@ -515,7 +515,7 @@
         <div class="row">
           <div class="field">
             <label for="bin-qty">Cantidad a generar</label>
-            <input type="number" id="bin-qty" value="5" min="1" max="100">
+            <input type="number" id="bin-qty" value="10" min="1" max="100">
           </div>
           <div class="field">
             <label for="bin-name-mode">Modo de nombres</label>
@@ -556,13 +556,38 @@
         </div>
         <div class="row">
           <div class="field">
-            <label for="injection-queue-status">Estado de cola</label>
-            <textarea id="injection-queue-status" rows="4" readonly placeholder="Esperando inyección..."></textarea>
+            <label for="injection-status">Estado de cola</label>
+            <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
           </div>
         </div>
         <div class="row">
-          <button class="btn btn-success" id="injection-process-btn">Procesar siguiente tarjeta en cola</button>
-          <button class="btn btn-secondary" id="injection-clear-btn">Limpiar cola</button>
+          <div class="field">
+            <label for="injection-cardholder">Nombre en la tarjeta</label>
+            <input type="text" id="injection-cardholder" placeholder="Nombre titular" autocomplete="cc-name">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="injection-cardnumber">Número de tarjeta</label>
+            <input type="text" id="injection-cardnumber" placeholder="0000 0000 0000 0000" autocomplete="cc-number" inputmode="numeric">
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="injection-expire">Expiración (MM/AA)</label>
+            <input type="text" id="injection-expire" placeholder="MM/AA" autocomplete="cc-exp" maxlength="5">
+          </div>
+          <div class="field">
+            <label for="injection-cvc">CVC</label>
+            <input type="text" id="injection-cvc" placeholder="000" autocomplete="cc-csc" inputmode="numeric" maxlength="4">
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn btn-success" id="injection-save-btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar tarjeta en Google</button>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+          <button class="btn btn-secondary" id="injection-skip-btn">Saltar esta tarjeta</button>
+          <button class="btn btn-danger" id="injection-stop-btn">Detener inyección</button>
         </div>
       </div>
     </div>
@@ -635,9 +660,14 @@
     const binQty = document.getElementById('bin-qty');
     const binNameMode = document.getElementById('bin-name-mode');
     const binManualName = document.getElementById('bin-manual-name');
-    const injectionQueueStatus = document.getElementById('injection-queue-status');
-    const injectionProcessBtn = document.getElementById('injection-process-btn');
-    const injectionClearBtn = document.getElementById('injection-clear-btn');
+    const injectionStatus = document.getElementById('injection-status');
+    const injectionCardholder = document.getElementById('injection-cardholder');
+    const injectionCardnumber = document.getElementById('injection-cardnumber');
+    const injectionExpire = document.getElementById('injection-expire');
+    const injectionCvc = document.getElementById('injection-cvc');
+    const injectionSaveBtn = document.getElementById('injection-save-btn');
+    const injectionSkipBtn = document.getElementById('injection-skip-btn');
+    const injectionStopBtn = document.getElementById('injection-stop-btn');
 
     // Luhn Algorithm
     function luhnCheck(num) {
@@ -723,34 +753,34 @@
 
     function updateInjectionStatus() {
       const { queue, index } = getInjectionQueue();
-      if (!queue.length) {
-        injectionQueueStatus.value = 'No hay tarjetas en cola para inyectar.';
+      if (!queue.length || index >= queue.length) {
+        injectionStatus.value = 'No hay tarjetas en cola.';
+        injectionCardholder.value = '';
+        injectionCardnumber.value = '';
+        injectionExpire.value = '';
+        injectionCvc.value = '';
         return;
       }
-      injectionQueueStatus.value = `Tarjetas en cola: ${queue.length} | Siguiente: ${index + 1} de ${queue.length}`;
+      const current = queue[index];
+      const parts = current.card.split('|');
+      injectionCardholder.value = current.name;
+      injectionCardnumber.value = parts[0];
+      injectionExpire.value = `${parts[1]}/${parts[2]}`;
+      injectionCvc.value = parts[3];
+      injectionStatus.value = `Tarjeta ${index + 1} de ${queue.length}`;
     }
 
     function processNextInjection() {
       const { queue, index } = getInjectionQueue();
       if (!queue.length || index >= queue.length) {
         clearInjectionQueue();
-        alert('Inyección completa. No hay tarjetas pendientes.');
+        alert('Inyección masiva completada. No hay más tarjetas.');
         return;
       }
-      const next = queue[index];
-      const question = `¿Deseas sincronizar la tarjeta ${index + 1} de ${queue.length} en tu cuenta de Google?\n\n${next.card}`;
-      if (!confirm(question)) {
-        injectionQueueStatus.value = 'Inyección pausada por el usuario.';
-        return;
-      }
-      alert(`Sincronizado: ${next.name} (${index + 1}/${queue.length})`);
+      // Simular que Chrome guardó la tarjeta
+      alert(`Tarjeta ${index + 1}/${queue.length} guardada. Recargar...`);
       setInjectionQueue(queue, index + 1);
-      if (index + 1 < queue.length) {
-        location.reload();
-      } else {
-        clearInjectionQueue();
-        alert('Inyección masiva finalizada.');
-      }
+      setTimeout(() => location.reload(), 500);
     }
 
     function registerInjectionQueue(cards) {
@@ -930,12 +960,12 @@
 
     // Preset BINS
     const predefBins = [
-      { label: '54343001803471xx |01|28| nuevo', pattern: '54343001803471xx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '54343001803569xx |01|28| nuevo', pattern: '54343001803569xx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '543430018036xxxx |01|28| nuevo', pattern: '543430018036xxxx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '5434300180361xxx |01|28| antiguo', pattern: '5434300180361xxx', exp: '01', year: '2028', status: 'antiguo' },
-      { label: '5434300180362xxx |01|28| nuevo', pattern: '5434300180362xxx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '5434300180360x4 |01|28| nuevo', pattern: '5434300180360x4', exp: '01', year: '2028', status: 'nuevo' }
+      { label: '54343001803471xx|01|28|xxx nuevo', pattern: '54343001803471xx', exp: '01', year: '2028', status: 'nuevo' },
+      { label: '54343001803569xx|01|28|xxx nuevo', pattern: '54343001803569xx', exp: '01', year: '2028', status: 'nuevo' },
+      { label: '543430018036xxxx|01|28|xxx nuevo', pattern: '543430018036xxxx', exp: '01', year: '2028', status: 'nuevo' },
+      { label: '5434300180361xxx|01|28|xxx antiguo', pattern: '5434300180361xxx', exp: '01', year: '2028', status: 'antiguo' },
+      { label: '5434300180362xxx|01|28|xxx nuevo', pattern: '5434300180362xxx', exp: '01', year: '2028', status: 'nuevo' },
+      { label: '5434300180360x4|01|28|xxx nuevo', pattern: '5434300180360x4', exp: '01', year: '2028', status: 'nuevo' }
     ];
 
     // Modal de inyección
@@ -1005,7 +1035,10 @@
         btn.addEventListener('click', async () => {
           hideError();
           const qty = Math.max(1, Math.min(100, Number(binQty.value) || 1));
-          const nameMode = binNameMode.value;
+          
+          // Pedir nombre al usuario o usar random
+          const userInput = prompt('Ingresa un nombre o presiona cancelar para usar random:');
+          
           const queue = [];
 
           for (let i = 0; i < qty; i++) {
@@ -1017,7 +1050,16 @@
             const isAmex = gen.startsWith('34') || gen.startsWith('37');
             const cvc = getByModeCvc(isAmex);
             const exp = formatExpiry();
-            const name = pickName(nameMode);
+            
+            let name;
+            if (userInput && userInput.trim()) {
+              name = userInput.trim();
+            } else {
+              // Generar nombre random si canceló o dejó vacío
+              const nameMode = 'random';
+              name = pickName(nameMode);
+            }
+            
             const cardLine = `${gen}|${exp.month}|${exp.year}|${cvc}`;
 
             queue.push({ card: cardLine, name });
@@ -1127,10 +1169,20 @@
     renderBinPresetCards();
     updateInjectionStatus();
 
-    injectionProcessBtn.addEventListener('click', processNextInjection);
-    injectionClearBtn.addEventListener('click', () => {
+    injectionSaveBtn.addEventListener('click', processNextInjection);
+    injectionSkipBtn.addEventListener('click', () => {
+      const { queue, index } = getInjectionQueue();
+      if (queue.length && index + 1 < queue.length) {
+        setInjectionQueue(queue, index + 1);
+        updateInjectionStatus();
+        alert('Tarjeta saltada. Siguiente...');
+      } else {
+        alert('No hay más tarjetas.');
+      }
+    });
+    injectionStopBtn.addEventListener('click', () => {
       clearInjectionQueue();
-      alert('Cola de inyección limpia.');
+      alert('Inyección detenida.');
     });
 
     // Auto-run inyección en cadena si hay cola activa
