@@ -1219,16 +1219,12 @@
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        const form = document.getElementById('injection-form');
-        const nextIndex = index + 1;
-        const timestamp = Date.now();
-        
-        // Cambiar action a la URL con parámetros
-        form.action = `?i=${nextIndex}&t=${timestamp}`;
-        
-        // Enviar el formulario para que Chrome procese el prompt
-        form.submit();
+        // Actualizar localStorage con el siguiente índice
+        setInjectionQueue(queue, index + 1);
+        // Recargar la página SIN cambiar URL
+        location.reload();
       } else {
+        clearInjectionQueue();
         location.reload();
       }
     });
