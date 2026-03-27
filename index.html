@@ -560,31 +560,33 @@
             <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
           </div>
         </div>
-        <div class="row">
-          <div class="field">
-            <label for="injection-cardholder">Nombre en la tarjeta</label>
-            <input type="text" id="injection-cardholder" placeholder="Nombre titular" autocomplete="cc-name">
+        <form id="injection-form" name="payment" autocomplete="on">
+          <div class="row">
+            <div class="field">
+              <label for="injection-cardholder">Nombre en la tarjeta</label>
+              <input type="text" id="injection-cardholder" name="cardholder" placeholder="Nombre titular" autocomplete="cc-name" required>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label for="injection-cardnumber">Número de tarjeta</label>
-            <input type="text" id="injection-cardnumber" placeholder="0000 0000 0000 0000" autocomplete="cc-number" inputmode="numeric">
+          <div class="row">
+            <div class="field">
+              <label for="injection-cardnumber">Número de tarjeta</label>
+              <input type="text" id="injection-cardnumber" name="cardnumber" placeholder="0000 0000 0000 0000" autocomplete="cc-number" inputmode="numeric" required>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label for="injection-expire">Expiración (MM/AA)</label>
-            <input type="text" id="injection-expire" placeholder="MM/AA" autocomplete="cc-exp" maxlength="5">
+          <div class="row">
+            <div class="field">
+              <label for="injection-expire">Expiración (MM/AA)</label>
+              <input type="text" id="injection-expire" name="exp" placeholder="MM/AA" autocomplete="cc-exp" maxlength="5" required>
+            </div>
+            <div class="field">
+              <label for="injection-cvc">CVC</label>
+              <input type="text" id="injection-cvc" name="cvc" placeholder="000" autocomplete="cc-csc" inputmode="numeric" maxlength="4" required>
+            </div>
           </div>
-          <div class="field">
-            <label for="injection-cvc">CVC</label>
-            <input type="text" id="injection-cvc" placeholder="000" autocomplete="cc-csc" inputmode="numeric" maxlength="4">
+          <div class="row">
+            <button type="button" class="btn btn-success" id="injection-save-btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar tarjeta en Google</button>
           </div>
-        </div>
-        <div class="row">
-          <button class="btn btn-success" id="injection-save-btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar tarjeta en Google</button>
-        </div>
+        </form>
         <div class="row" style="margin-top: 20px;">
           <button class="btn btn-secondary" id="injection-skip-btn">Saltar esta tarjeta</button>
           <button class="btn btn-danger" id="injection-stop-btn">Detener inyección</button>
@@ -1195,9 +1197,6 @@
       clearInjectionQueue();
       alert('Inyección detenida.');
     });
-
-    // Auto-run inyección en cadena si hay cola activa
-    setTimeout(autoRunInjectionQueue, 400);
 
     // Auto responsive
     if (window.innerWidth < 860) {
