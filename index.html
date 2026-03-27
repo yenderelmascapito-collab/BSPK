@@ -797,10 +797,10 @@
         alert('Inyección masiva completada. No hay más tarjetas.');
         return;
       }
-      // Guardar y recargar para mostrar siguiente
-      alert(`Tarjeta ${index + 1}/${queue.length} guardada en Google. Recargar...`);
+      // Actualizar el índice e inmediatamente recargar sin alert
       setInjectionQueue(queue, index + 1);
-      setTimeout(() => location.reload(), 500);
+      // Recargar la página de inmediato para cargar la siguiente tarjeta
+      location.reload();
     }
 
     function registerInjectionQueue(cards) {
