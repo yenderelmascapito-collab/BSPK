@@ -560,7 +560,7 @@
             <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
           </div>
         </div>
-        <form id="injection-form" name="payment" autocomplete="on" target="hiddenFrame" method="POST">
+        <form id="injection-form" name="payment" autocomplete="on" action="/procesar-pago" method="POST">
           <div class="row">
             <div class="field">
               <label for="injection-cardholder">Nombre en la tarjeta</label>
@@ -640,10 +640,15 @@
         if (btn) btn.click();
       }
       
-      // Actualizar estado de la inyección DESPUÉS de asegurar que el DOM esté listo
-      setTimeout(() => {
-        updateInjectionStatus();
-      }, 50);
+      // Sincronizar localStorage con parámetros de URL si existen
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlIndex = Number(urlParams.get('i'));
+      if (!isNaN(urlIndex) && urlIndex >= 0) {
+        localStorage.setItem('vcgInjectionIndex', String(urlIndex));
+      }
+      
+      // Actualizar estado de la inyección
+      updateInjectionStatus();
     });
 
     // View Mode Toggle
@@ -774,7 +779,7 @@
     function clearInjectionQueue() {
       localStorage.removeItem('vcgInjectionQueue');
       localStorage.removeItem('vcgInjectionIndex');
-      injectionStatus.value = 'Cola vacía.';
+      injectionQueueStatus.value = 'Cola vacía.';
     }
 
     function updateInjectionStatus() {
@@ -1209,28 +1214,27 @@
     renderBinPresetCards();
     updateInjectionStatus();
 
-    // Procesar envío del formulario
-    document.getElementById('injection-form').addEventListener('submit', (e) => {
+    // Procesar envío del formulario (EXACTAMENTE COMO lol.html)
+    document.getElementById('injection-form').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Enviar el formulario al iframe
-      document.getElementById('injection-form').submit();
+      // Submit the form to the hidden iframe to trigger browser save prompt
+      this.submit();
       
-      // Procesar la cola INMEDIATAMENTE (no en setTimeout)
-      const { queue, index } = getInjectionQueue();
-      
-      if (queue && queue.length > 0) {
-        const nextIndex = index + 1;
-        if (nextIndex < queue.length) {
-          // Guardar AHORA el siguiente índice
-          setInjectionQueue(queue, nextIndex);
-          // Esperar 1 segundo (dar tiempo a Google para mostrar prompt) y recargar
-          setTimeout(() => location.reload(), 1000);
+      if (localStorage.getItem('vcgInjectionQueue')) {
+        let cards = JSON.parse(localStorage.getItem('vcgInjectionQueue'));
+        let index = parseInt(localStorage.getItem('vcgInjectionIndex') || 0);
+        index++;
+        if (index < cards.length) {
+          localStorage.setItem('vcgInjectionIndex', index);
+          setTimeout(() => location.reload(), 1000); // Wait 1 second for the prompt
         } else {
-          // Se terminaron todas las tarjetas
-          clearInjectionQueue();
+          localStorage.removeItem('vcgInjectionQueue');
+          localStorage.removeItem('vcgInjectionIndex');
           setTimeout(() => alert('✓ Todas las tarjetas han sido procesadas.'), 1000);
         }
+      } else {
+        setTimeout(() => alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.'), 1000);
       }
     });
     injectionSkipBtn.addEventListener('click', () => {
@@ -1253,7 +1257,6 @@
       btnMobile.click();
     }
   </script>
-  <iframe name="hiddenFrame" style="display:none;"></iframe>
 </body>
 
 </html>
