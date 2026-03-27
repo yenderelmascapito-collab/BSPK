@@ -779,7 +779,7 @@
     function clearInjectionQueue() {
       localStorage.removeItem('vcgInjectionQueue');
       localStorage.removeItem('vcgInjectionIndex');
-      injectionQueueStatus.value = 'Cola vacía.';
+      injectionStatus.value = 'Cola vacía.';
     }
 
     function updateInjectionStatus() {
@@ -1219,11 +1219,16 @@
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        setInjectionQueue(queue, index + 1);
-        location.reload();
+        // Incrementar índice
+        const nextIndex = index + 1;
+        setInjectionQueue(queue, nextIndex);
+        // Forzar actualización y recargar
+        setTimeout(() => {
+          location.reload();
+        }, 100);
       } else {
         clearInjectionQueue();
-        location.reload();
+        updateInjectionStatus();
       }
     });
     injectionSkipBtn.addEventListener('click', () => {
