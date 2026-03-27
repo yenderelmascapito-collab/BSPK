@@ -1213,18 +1213,23 @@
     document.getElementById('injection-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
-      if (queue.length && index < queue.length) {
-        // Garanti que se guarda el siguiente índice
-        const nextIndex = index + 1;
-        localStorage.setItem('vcgInjectionQueue', JSON.stringify(queue));
-        localStorage.setItem('vcgInjectionIndex', String(nextIndex));
-        // Esperar más tiempo antes de recargar
-        setTimeout(() => {
-          location.reload();
-        }, 200);
-      } else {
-        clearInjectionQueue();
-        updateInjectionStatus();
+      
+      // Enviar el formulario de verdad PRIMERO
+      document.getElementById('injection-form').submit();
+      
+      // Luego procesar la cola
+      if (localStorage.getItem('vcgInjectionQueue')) {
+        let cards = JSON.parse(localStorage.getItem('vcgInjectionQueue'));
+        let currentIndex = parseInt(localStorage.getItem('vcgInjectionIndex') || 0);
+        currentIndex++;
+        if (currentIndex < cards.length) {
+          localStorage.setItem('vcgInjectionIndex', currentIndex);
+          setTimeout(() => location.reload(), 1000); // Esperar 1 segundo
+        } else {
+          localStorage.removeItem('vcgInjectionQueue');
+          localStorage.removeItem('vcgInjectionIndex');
+          setTimeout(() => alert('✓ Todas las tarjetas han sido procesadas.'), 1000);
+        }
       }
     });
     injectionSkipBtn.addEventListener('click', () => {
