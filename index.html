@@ -472,13 +472,6 @@
             <input type="number" id="quantity-input" value="5" min="1" max="50">
           </div>
           <div class="field">
-            <label for="expiry-mode">Fecha</label>
-            <select id="expiry-mode">
-              <option value="random">Random (MM/AAAA)</option>
-              <option value="xx">xx/xx</option>
-            </select>
-          </div>
-          <div class="field">
             <label for="cvv-mode">CVC</label>
             <select id="cvv-mode">
               <option value="random">Random</option>
@@ -591,7 +584,6 @@
     const checkInput = document.getElementById('check-input');
     const checkBtn = document.getElementById('check-btn');
     const checkResult = document.getElementById('check-result');
-    const expiryMode = document.getElementById('expiry-mode');
     const cvvMode = document.getElementById('cvv-mode');
 
     // Luhn Algorithm
@@ -669,13 +661,6 @@
       const prefix = digits.slice(0, targetLength - 1);
       const check = getLuhnDigit(prefix);
       return prefix + check;
-    }
-
-    function getByModeExpiry() {
-      if (expiryMode.value === 'xx') {
-        return { month: 'xx', year: 'xx' };
-      }
-      return formatExpiry();
     }
 
     function getByModeCvc(isAmex) {
