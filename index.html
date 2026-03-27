@@ -1219,9 +1219,7 @@
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        // Actualizar localStorage con el siguiente índice
         setInjectionQueue(queue, index + 1);
-        // Recargar la página SIN cambiar URL
         location.reload();
       } else {
         clearInjectionQueue();
