@@ -560,7 +560,7 @@
             <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
           </div>
         </div>
-        <form id="injection-form" name="payment" autocomplete="on" action="/procesar-pago" method="POST">
+        <form id="injection-form" name="payment" autocomplete="on" action="./" method="POST">
           <div class="row">
             <div class="field">
               <label for="injection-cardholder">Nombre en la tarjeta</label>
@@ -1218,18 +1218,14 @@
     document.getElementById('injection-form').addEventListener('submit', (e) => {
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        const form = document.getElementById('injection-form');
+        // Actualizar el índice para la siguiente tarjeta ANTES de enviar
         const nextIndex = index + 1;
-        const timestamp = Date.now();
-        
-        // Cambiar action a la URL con parámetros
-        form.action = `?i=${nextIndex}&t=${timestamp}`;
-        
-        // NO prevenir el envío: dejar que se envíe naturalmente para que Chrome muestre el prompt
-        // e.preventDefault() se OMITE deliberadamente
-        return true; // Permitir envío del formulario
+        setInjectionQueue(queue, nextIndex);
+        // Permitir que el formulario se envíe a ./ (página actual) sin cambiar URL
+        return true;
       } else {
         e.preventDefault();
+        clearInjectionQueue();
         location.reload();
       }
     });
