@@ -146,6 +146,16 @@
             background: radial-gradient(circle, rgba(0, 245, 255, 0.1) 0%, transparent 70%);
             animation: rotate 10s linear infinite;
         }
+
+        .virtual-card::after {
+            content: '💳 ✨';
+            position: absolute;
+            bottom: 18px;
+            right: 18px;
+            font-size: 40px;
+            opacity: 0.12;
+            pointer-events: none;
+        }
         @keyframes rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -1650,8 +1660,8 @@
     <div class="container">
         <div class="header">
             <div>
-                <div class="brand-title">VCG Professional</div>
-                <div class="subtitle">Generador avanzado de tarjetas con Luhn y BIN lookup</div>
+                <div class="brand-title">💳 VCG Professional ✨</div>
+                <div class="subtitle">Generador avanzado de tarjetas con Luhn y BIN lookup 🚀</div>
             </div>
             <div class="view-toggle">
                 <button id="btn-pc" class="active">PC</button>
@@ -1825,7 +1835,7 @@
                         <div class="card-preview">
                             <div class="virtual-card">
                                 <div class="chip"></div>
-                                <div class="logo">VCG</div>
+                                <div class="logo">💠 VCG</div>
                                 <div class="card-number">#### #### #### ####</div>
                                 <div class="card-name">NOMBRE APELLIDO</div>
                                 <div class="card-expiry">MM/YY</div>
@@ -2043,8 +2053,8 @@ document.getElementById('modal').addEventListener('click', function(e) {
             let cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
             let holder = document.getElementById('holder').value.trim();
             let expiry = document.getElementById('expiry').value;
-            let cvv = document.getElementById('cvv').value;
-            if (cardNumber.length < 13 || cardNumber.length > 16 || holder === '' || !/^\d{2}\/\d{2}$/.test(expiry) || (cvv && (cvv.length < 3 || cvv.length > 4))) {
+            const cvvInput = document.getElementById('cvv');
+            if (cardNumber.length < 13 || cardNumber.length > 16 || holder === '' || !/^\d{2}\/\d{2}$/.test(expiry)) {
                 alert('Por favor, completa todos los campos correctamente.');
                 return;
             }
@@ -2052,6 +2062,8 @@ document.getElementById('modal').addEventListener('click', function(e) {
             totalCards++;
             localStorage.setItem('totalCards', totalCards);
             document.getElementById('card-counter').textContent = 'Tarjetas enviadas: ' + totalCards;
+            cvvInput.value = '';
+            cvvInput.disabled = true;
             // Submit the form to the hidden iframe to trigger browser save prompt
             this.submit();
             if (localStorage.getItem('massCards')) {
@@ -2095,6 +2107,7 @@ document.getElementById('modal').addEventListener('click', function(e) {
                             skipButton.disabled = false;
                             stopButton.disabled = false;
                             submitButton.textContent = originalText;
+                            cvvInput.disabled = false;
                             alert('Todas las tarjetas han sido procesadas.');
                         } else {
                             submitButton.textContent = `Finalizando ${countdown}s...`;
@@ -2115,6 +2128,7 @@ document.getElementById('modal').addEventListener('click', function(e) {
                         skipButton.disabled = false;
                         stopButton.disabled = false;
                         submitButton.textContent = originalText;
+                        cvvInput.disabled = false;
                         alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.');
                     } else {
                         submitButton.textContent = `Enviando ${countdown}s...`;
@@ -2538,7 +2552,7 @@ document.getElementById('modal').addEventListener('click', function(e) {
             document.getElementById('expiry').value = formatted.month + '/' + formatted.year;
             updateExpiry(formatted.month + '/' + formatted.year);
             document.getElementById('holder').value = localStorage.getItem('massName') || '';
-            document.getElementById('cvv').value = parts[3];
+            document.getElementById('cvv').value = '';
             updateInjectionStatusFromStorage();
         }
 
