@@ -1926,16 +1926,21 @@
             });
         }
         async function fetchBIN(bin) {
-            if (!bin || bin.length < 6) {
+            const query = normalizeBinQuery(bin);
+            if (!query) {
                 document.getElementById('bin-info').innerHTML = 'Info BIN aparecerá aquí';
                 return;
             }
-            const info = await getBinInfo(bin.substring(0, 6));
+            const info = await getBinInfo(query);
             if (!info) {
-                document.getElementById('bin-info').innerHTML = 'Error al obtener info BIN';
+                document.getElementById('bin-info').innerHTML = `BIN ${query}: No disponible en binlist`;
                 return;
             }
-            document.getElementById('bin-info').innerHTML = `Banco: ${info.bank}<br>Tipo: ${info.type}<br>Marca: ${info.scheme}<br>País: ${info.country}`;
+            if (info.rateLimited) {
+                document.getElementById('bin-info').innerHTML = 'Límite de BINlist excedido';
+                return;
+            }
+            document.getElementById('bin-info').innerHTML = `Banco: ${info.bank}<br>Tipo: ${info.type}<br>Marca: ${info.brand}<br>País: ${info.country} ${info.emoji}`;
         }
         function updateCardNumber(value) {
             document.querySelector('.card-number').textContent = value || '#### #### #### ####';
@@ -2416,36 +2421,52 @@ document.getElementById('modal').addEventListener('click', function(e) {
             return String(Math.floor(Math.random() * 900) + 100);
         }
 
+        function normalizeBinQuery(bin) {
+            const digits = cleanDigits(bin);
+            if (digits.length >= 8) return digits.slice(0, 8);
+            if (digits.length >= 6) return digits.slice(0, 6);
+            return '';
+        }
+
         async function getBinInfo(bin) {
+            const rawQuery = normalizeBinQuery(bin);
+            if (!rawQuery) return null;
             const endpoints = ['https://lookup.binlist.net/', 'https://api.binlist.net/'];
-            for (const endpoint of endpoints) {
-                try {
-                    const res = await fetch(endpoint + bin, {
-                        headers: {
-                            'Accept-Version': '3'
-                        },
-                        mode: 'cors'
-                    });
-                    if (!res.ok) continue;
-                    const data = await res.json();
-                    return {
-                        scheme: (data.scheme || 'N/A').toUpperCase(),
-                        type: data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : 'N/A',
-                        brand: data.brand || 'N/A',
-                        bank: data.bank?.name || 'N/A',
-                        country: data.country?.name || 'N/A'
-                    };
-                } catch (err) {
-                    continue;
+            const queries = rawQuery.length === 8 ? [rawQuery, rawQuery.slice(0, 6)] : [rawQuery];
+            for (const query of queries) {
+                for (const endpoint of endpoints) {
+                    try {
+                        const res = await fetch(endpoint + query, {
+                            headers: {
+                                'Accept-Version': '3'
+                            },
+                            mode: 'cors'
+                        });
+                        if (res.status === 404) continue;
+                        if (res.status === 429) return { error: 'Límite de consultas excedido', rateLimited: true };
+                        if (!res.ok) continue;
+                        const data = await res.json();
+                        return {
+                            scheme: (data.scheme || 'N/A').toUpperCase(),
+                            type: data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : 'N/A',
+                            brand: data.brand || 'N/A',
+                            bank: data.bank?.name || 'N/A',
+                            country: data.country?.name || 'N/A',
+                            emoji: data.country?.emoji || '',
+                            prepaid: typeof data.prepaid === 'boolean' ? (data.prepaid ? 'Sí' : 'No') : 'N/A'
+                        };
+                    } catch (err) {
+                        continue;
+                    }
                 }
             }
             return null;
         }
 
         async function updateGeneratorBinInfo(pattern) {
-            const bin = cleanDigits(pattern).slice(0, 6);
-            if (bin.length !== 6) {
-                generatorBinInfo.textContent = 'BIN inválido (necesita 6 dígitos)';
+            const bin = normalizeBinQuery(pattern);
+            if (!bin) {
+                generatorBinInfo.textContent = 'BIN inválido (necesita 6 o 8 dígitos)';
                 return;
             }
             const info = await getBinInfo(bin);
@@ -2453,7 +2474,11 @@ document.getElementById('modal').addEventListener('click', function(e) {
                 generatorBinInfo.textContent = `BIN ${bin}: No disponible en binlist`;
                 return;
             }
-            generatorBinInfo.innerHTML = `<strong>BIN:</strong> ${bin} | <strong>Banco:</strong> ${info.bank} | <strong>País:</strong> ${info.country} | <strong>Esquema:</strong> ${info.scheme} | <strong>Tipo:</strong> ${info.type}`;
+            if (info.rateLimited) {
+                generatorBinInfo.textContent = 'Límite de BINlist excedido. Espera antes de volver a consultar.';
+                return;
+            }
+            generatorBinInfo.innerHTML = `<strong>BIN:</strong> ${bin} | <strong>Banco:</strong> ${info.bank} | <strong>País:</strong> ${info.country} ${info.emoji} | <strong>Esquema:</strong> ${info.scheme} | <strong>Tipo:</strong> ${info.type} | <strong>Prepaid:</strong> ${info.prepaid}`;
         }
 
         function generateCards(pattern, quantity, expiry, cvcMode) {
@@ -2562,12 +2587,17 @@ document.getElementById('modal').addEventListener('click', function(e) {
                 checkerResult.textContent = '✕ Luhn: Inválido';
             }
             if (digits.length >= 6) {
-                getBinInfo(digits.slice(0, 6)).then(info => {
+                const query = normalizeBinQuery(digits);
+                getBinInfo(query).then(info => {
                     if (!info) {
                         checkerBinInfo.textContent = 'No disponible en binlist';
                         return;
                     }
-                    checkerBinInfo.textContent = `Banco: ${info.bank} | País: ${info.country} | Esquema: ${info.scheme} | Tipo: ${info.type}`;
+                    if (info.rateLimited) {
+                        checkerBinInfo.textContent = 'Límite de BINlist excedido';
+                        return;
+                    }
+                    checkerBinInfo.textContent = `Banco: ${info.bank} | País: ${info.country} ${info.emoji} | Esquema: ${info.scheme} | Tipo: ${info.type} | Prepaid: ${info.prepaid}`;
                 });
             } else {
                 checkerBinInfo.textContent = 'BIN info aparecerá aquí.';
