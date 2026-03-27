@@ -1216,7 +1216,6 @@
 
     // Procesar envío del formulario
     document.getElementById('injection-form').addEventListener('submit', (e) => {
-      e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
         const form = document.getElementById('injection-form');
@@ -1226,9 +1225,11 @@
         // Cambiar action a la URL con parámetros
         form.action = `?i=${nextIndex}&t=${timestamp}`;
         
-        // Enviar el formulario para que Chrome procese el prompt
-        form.submit();
+        // NO prevenir el envío: dejar que se envíe naturalmente para que Chrome muestre el prompt
+        // e.preventDefault() se OMITE deliberadamente
+        return true; // Permitir envío del formulario
       } else {
+        e.preventDefault();
         location.reload();
       }
     });
