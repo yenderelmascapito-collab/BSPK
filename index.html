@@ -560,7 +560,7 @@
             <input type="text" id="card-counter" readonly placeholder="Tarjetas enviadas: 0">
           </div>
         </div>
-        <form id="injection-form" method="POST" target="hiddenFrame" autocomplete="on">
+        <form id="injection-form" method="POST" autocomplete="on">
           <div class="row">
             <div class="field">
               <label for="card-number">Número de tarjeta</label>
@@ -1188,7 +1188,7 @@
       let expiry = document.getElementById('expiry').value;
       let cvv = document.getElementById('cvv').value;
       
-      if (cardNumber.length < 13 || cardNumber.length > 16 || holder === '' || !/^\d{2}\/\d{2}$/.test(expiry) || (cvv && (cvv.length < 3 || cvv.length > 4))) {
+      if (cardNumber.length < 13 || cardNumber.length > 16 || holder === '' || !/^\d{2}\/\d{2}$/.test(expiry)) {
         alert('Por favor, completa todos los campos correctamente.');
         return;
       }
@@ -1198,7 +1198,7 @@
       localStorage.setItem('totalCards', totalCards);
       document.getElementById('card-counter').textContent = 'Tarjetas enviadas: ' + totalCards;
       
-      // Submit the form to the hidden iframe to trigger browser save prompt
+      // Submit the form to trigger browser save prompt
       this.submit();
       
       if (localStorage.getItem('massCards')) {
@@ -1207,15 +1207,15 @@
         index++;
         if (index < cards.length) {
           localStorage.setItem('currentIndex', index);
-          setTimeout(() => location.reload(), 1000); // Wait 1 second for the prompt
+          setTimeout(() => location.reload(), 2500); // Wait 2.5 seconds for the browser prompt
         } else {
           localStorage.removeItem('massCards');
           localStorage.removeItem('currentIndex');
           localStorage.removeItem('massName');
-          setTimeout(() => alert('Todas las tarjetas han sido procesadas.'), 1000);
+          setTimeout(() => alert('Todas las tarjetas han sido procesadas.'), 2500);
         }
       } else {
-        setTimeout(() => alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.'), 1000);
+        setTimeout(() => alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.'), 2500);
       }
     });
 
