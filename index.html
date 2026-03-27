@@ -464,17 +464,26 @@
       <div class="panel active" id="tab-generator">
         <div class="row">
           <div class="field">
-            <label for="bin-input">BIN (6-8 dígitos, obligatorio, solo números)</label>
-            <input type="text" id="bin-input" maxlength="8" placeholder="Ej. 543430" autocomplete="off">
+            <label for="bin-input">BIN (6-8 dígitos o patrón con x)</label>
+            <input type="text" id="bin-input" maxlength="16" placeholder="Ej. 543430 o 543430xx" autocomplete="off">
           </div>
           <div class="field">
             <label for="quantity-input">Cantidad</label>
             <input type="number" id="quantity-input" value="5" min="1" max="50">
           </div>
           <div class="field">
-            <label for="include-expiry">Fecha y CVC</label>
-            <select id="include-expiry">
-              <option value="1">Generar mes/año/cvc</option>
+            <label for="expiry-mode">Fecha</label>
+            <select id="expiry-mode">
+              <option value="random">Random (MM/AAAA)</option>
+              <option value="xx">xx/xx</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cvv-mode">CVC</label>
+            <select id="cvv-mode">
+              <option value="random">Random</option>
+              <option value="tnd">tnd</option>
+              <option value="xxx">xxx</option>
             </select>
           </div>
         </div>
@@ -582,6 +591,8 @@
     const checkInput = document.getElementById('check-input');
     const checkBtn = document.getElementById('check-btn');
     const checkResult = document.getElementById('check-result');
+    const expiryMode = document.getElementById('expiry-mode');
+    const cvvMode = document.getElementById('cvv-mode');
 
     // Luhn Algorithm
     function luhnCheck(num) {
@@ -620,23 +631,63 @@
     }
 
     function isValidBin(bin) {
-      return /^\d{6,8}$/.test(bin);
+      const normalized = bin.trim();
+      if (!/^[0-9xX]+$/.test(normalized)) return false;
+      const digits = normalized.replace(/[xX]/g, '');
+      return digits.length >= 6 && digits.length <= 8;
     }
 
     function getCardLengthForBin(bin) {
-      if (/^3[47]/.test(bin)) return 15;
+      const normalized = bin.replace(/[xX]/g, '0');
+      if (/^3[47]/.test(normalized)) return 15;
       return 16;
     }
 
-    function generateFromBin(bin) {
-      if (!isValidBin(bin)) return null;
-      const typeLen = getCardLengthForBin(bin);
-      let partial = bin;
-      while (partial.length < typeLen - 1) {
-        partial += randomInt(0, 9).toString();
+    function buildNumberFromPattern(inputPattern) {
+      const pattern = inputPattern.trim().replace(/\s+/g, '');
+      if (!/^[0-9xX]+$/.test(pattern)) return null;
+      if (pattern.length < 6) return null;
+
+      const targetLength = getCardLengthForBin(pattern);
+      let working = pattern;
+
+      if (working.length < targetLength) {
+        working += 'x'.repeat(targetLength - working.length);
+      } else if (working.length > targetLength) {
+        working = working.slice(0, targetLength);
       }
-      const check = getLuhnDigit(partial);
-      return partial + check;
+
+      let digits = '';
+      for (let ch of working) {
+        if (ch.toLowerCase() === 'x') {
+          digits += randomInt(0, 9).toString();
+        } else {
+          digits += ch;
+        }
+      }
+
+      const prefix = digits.slice(0, targetLength - 1);
+      const check = getLuhnDigit(prefix);
+      return prefix + check;
+    }
+
+    function getByModeExpiry() {
+      if (expiryMode.value === 'xx') {
+        return { month: 'xx', year: 'xx' };
+      }
+      return formatExpiry();
+    }
+
+    function getByModeCvc(isAmex) {
+      if (cvvMode.value === 'tnd') return 'tnd';
+      if (cvvMode.value === 'xxx') return 'xxx';
+      if (isAmex) return String(randomInt(1000, 9999));
+      return String(randomInt(100, 999));
+    }
+
+    function generateFromBin(bin) {
+      const card = buildNumberFromPattern(bin);
+      return card;
     }
 
     function generateFromPattern(pattern) {
@@ -673,21 +724,29 @@
     }
 
     async function getBinInfo(bin) {
-      try {
-        const res = await fetch('https://lookup.binlist.net/' + bin, {
-          headers: { 'Accept-Version': '3' }
-        });
-        if (!res.ok) throw new Error('BIN no encontrado');
-        const data = await res.json();
-        const scheme = (data.scheme || 'N/A').toUpperCase();
-        const type = (data.type || 'N/A').charAt(0).toUpperCase() + (data.type || '').slice(1);
-        const brand = (data.brand || 'N/A');
-        const bank = (data.bank?.name || 'N/A');
-        const country = (data.country?.name || 'N/A');
-        return { scheme, type, brand, bank, country };
-      } catch (err) {
-        return null;
+      const endpoints = ['https://lookup.binlist.net/', 'https://api.binlist.net/'];
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint + bin, {
+            headers: {
+              'Accept-Version': '3',
+              'Content-Type': 'application/json',
+              'User-Agent': 'Mozilla/5.0'
+            }
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          const scheme = (data.scheme || 'N/A').toUpperCase();
+          const type = (data.type || 'N/A').charAt(0).toUpperCase() + (data.type || '').slice(1);
+          const brand = (data.brand || 'N/A');
+          const bank = (data.bank?.name || 'N/A');
+          const country = (data.country?.name || 'N/A');
+          return { scheme, type, brand, bank, country };
+        } catch (err) {
+          // intentar siguiente endpoint
+        }
       }
+      return null;
     }
 
     async function updateBinInfo(cardNumber) {
@@ -820,8 +879,8 @@
       const bin = binInput.value.trim();
       const qty = Math.max(1, Math.min(50, Number(quantityInput.value) || 1));
 
-      if (!isValidBin(bin)) {
-        showError('BIN inválido. Debe ser 6, 7 u 8 dígitos numéricos.');
+      if (!/^[0-9xX]+$/.test(bin) || bin.replace(/[xX]/g, '').length < 6) {
+        showError('BIN inválido. Debe contener al menos 6 dígitos (o x) y solo números/x.');
         return;
       }
 
@@ -832,8 +891,9 @@
           showError('No se generó número válido.');
           return;
         }
-        const ex = formatExpiry();
-        const cvc = (/^3[47]/.test(number) ? String(randomInt(1000, 9999)) : String(randomInt(100, 999)));
+        const ex = getByModeExpiry();
+        const isAmex = /^3[47]/.test(number);
+        const cvc = getByModeCvc(isAmex);
         lines.push(`${number}|${ex.month}|${ex.year}|${cvc}`);
       }
       output.value = lines.join('\n');
