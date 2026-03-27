@@ -560,31 +560,35 @@
             <input type="text" id="injection-status" readonly placeholder="Tarjetas pendientes: 0">
           </div>
         </div>
-        <form id="injection-form" name="payment" autocomplete="on">
+        <form id="injection-form" name="payment" autocomplete="on" action="/procesar-pago" method="POST">
           <div class="row">
             <div class="field">
               <label for="injection-cardholder">Nombre en la tarjeta</label>
-              <input type="text" id="injection-cardholder" name="cardholder" placeholder="Nombre titular" autocomplete="cc-name" required>
+              <input type="text" id="injection-cardholder" name="cardname" placeholder="Nombre titular" autocomplete="cc-name" required>
             </div>
           </div>
           <div class="row">
             <div class="field">
               <label for="injection-cardnumber">Número de tarjeta</label>
-              <input type="text" id="injection-cardnumber" name="cardnumber" placeholder="0000 0000 0000 0000" autocomplete="cc-number" inputmode="numeric" required>
+              <input type="tel" id="injection-cardnumber" name="cardnumber" placeholder="xxxx xxxx xxxx xxxx" autocomplete="cc-number" inputmode="numeric" required>
             </div>
           </div>
           <div class="row">
             <div class="field">
-              <label for="injection-expire">Expiración (MM/AA)</label>
-              <input type="text" id="injection-expire" name="exp" placeholder="MM/AA" autocomplete="cc-exp" maxlength="5" required>
+              <label for="injection-exp-month">Mes (MM)</label>
+              <input type="text" id="injection-exp-month" name="exp-month" placeholder="MM" autocomplete="cc-exp-month" maxlength="2" inputmode="numeric" required>
+            </div>
+            <div class="field">
+              <label for="injection-exp-year">Año (YY)</label>
+              <input type="text" id="injection-exp-year" name="exp-year" placeholder="YY" autocomplete="cc-exp-year" maxlength="2" inputmode="numeric" required>
             </div>
             <div class="field">
               <label for="injection-cvc">CVC</label>
-              <input type="text" id="injection-cvc" name="cvc" placeholder="000" autocomplete="cc-csc" inputmode="numeric" maxlength="4" required>
+              <input type="text" id="injection-cvc" name="cvc" placeholder="CVC" autocomplete="cc-csc" inputmode="numeric" maxlength="4" required>
             </div>
           </div>
           <div class="row">
-            <button type="button" class="btn btn-success" id="injection-save-btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar tarjeta en Google</button>
+            <button type="submit" class="btn btn-success" id="injection-save-btn" style="width: 100%; padding: 14px; font-size: 1rem;">💾 Guardar tarjeta en Google</button>
           </div>
         </form>
         <div class="row" style="margin-top: 20px;">
@@ -676,7 +680,8 @@
     const injectionStatus = document.getElementById('injection-status');
     const injectionCardholder = document.getElementById('injection-cardholder');
     const injectionCardnumber = document.getElementById('injection-cardnumber');
-    const injectionExpire = document.getElementById('injection-expire');
+    const injectionExpMonth = document.getElementById('injection-exp-month');
+    const injectionExpYear = document.getElementById('injection-exp-year');
     const injectionCvc = document.getElementById('injection-cvc');
     const injectionSaveBtn = document.getElementById('injection-save-btn');
     const injectionSkipBtn = document.getElementById('injection-skip-btn');
@@ -770,7 +775,8 @@
         injectionStatus.value = 'No hay tarjetas en cola.';
         injectionCardholder.value = '';
         injectionCardnumber.value = '';
-        injectionExpire.value = '';
+        injectionExpMonth.value = '';
+        injectionExpYear.value = '';
         injectionCvc.value = '';
         return;
       }
@@ -778,7 +784,8 @@
       const parts = current.card.split('|');
       injectionCardholder.value = current.name;
       injectionCardnumber.value = parts[0];
-      injectionExpire.value = `${parts[1]}/${parts[2]}`;
+      injectionExpMonth.value = parts[1];
+      injectionExpYear.value = parts[2];
       injectionCvc.value = parts[3];
       injectionStatus.value = `Tarjeta ${index + 1} de ${queue.length}`;
     }
@@ -973,12 +980,12 @@
 
     // Preset BINS
     const predefBins = [
-      { label: '54343001803471xx|01|28|xxx nuevo', pattern: '54343001803471xx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '54343001803569xx|01|28|xxx nuevo', pattern: '54343001803569xx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '543430018036xxxx|01|28|xxx nuevo', pattern: '543430018036xxxx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '5434300180361xxx|01|28|xxx antiguo', pattern: '5434300180361xxx', exp: '01', year: '2028', status: 'antiguo' },
-      { label: '5434300180362xxx|01|28|xxx nuevo', pattern: '5434300180362xxx', exp: '01', year: '2028', status: 'nuevo' },
-      { label: '5434300180360x4|01|28|xxx nuevo', pattern: '5434300180360x4', exp: '01', year: '2028', status: 'nuevo' }
+      { label: '54343001803471xx|01|28|xxx nuevo', pattern: '54343001803471xx', exp: '01', year: '28', status: 'nuevo' },
+      { label: '54343001803569xx|01|28|xxx nuevo', pattern: '54343001803569xx', exp: '01', year: '28', status: 'nuevo' },
+      { label: '543430018036xxxx|01|28|xxx nuevo', pattern: '543430018036xxxx', exp: '01', year: '28', status: 'nuevo' },
+      { label: '5434300180361xxx|01|28|xxx antiguo', pattern: '5434300180361xxx', exp: '01', year: '28', status: 'antiguo' },
+      { label: '5434300180362xxx|01|28|xxx nuevo', pattern: '5434300180362xxx', exp: '01', year: '28', status: 'nuevo' },
+      { label: '5434300180360x4|01|28|xxx nuevo', pattern: '5434300180360x4', exp: '01', year: '28', status: 'nuevo' }
     ];
 
     // Modal de inyección
@@ -1062,7 +1069,8 @@
             }
             const isAmex = gen.startsWith('34') || gen.startsWith('37');
             const cvc = getByModeCvc(isAmex);
-            const exp = formatExpiry();
+            // IMPORTANTE: Usar siempre las fechas definidas en el preset, NO generar aleatorias
+            const exp = { month: String(entry.exp).padStart(2, '0'), year: String(entry.year) };
             
             let name;
             if (userInput && userInput.trim()) {
@@ -1182,7 +1190,11 @@
     renderBinPresetCards();
     updateInjectionStatus();
 
-    injectionSaveBtn.addEventListener('click', processNextInjection);
+    // Prevenir envío real del formulario pero procesar nuestro flujo
+    document.getElementById('injection-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      processNextInjection();
+    });
     injectionSkipBtn.addEventListener('click', () => {
       const { queue, index } = getInjectionQueue();
       if (queue.length && index + 1 < queue.length) {
