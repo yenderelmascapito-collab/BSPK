@@ -1192,12 +1192,13 @@
 
     // Prevenir envío real del formulario pero procesar nuestro flujo
     document.getElementById('injection-form').addEventListener('submit', (e) => {
+      e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
         // Actualizar el índice ANTES de recargar
         setInjectionQueue(queue, index + 1);
       }
-      // Recargar INMEDIATAMENTE - Chrome procesa el prompt en paralelo
+      // Recargar INMEDIATAMENTE la misma página - Chrome procesa el prompt en paralelo
       location.reload();
     });
     injectionSkipBtn.addEventListener('click', () => {
