@@ -455,14 +455,14 @@
 
     <div class="content-wrapper">
       <div class="sidebar" id="sidebar">
-        <button class="tab-btn active" data-tab="tab-generator">Generador</button>
+        <button class="tab-btn" data-tab="tab-generator">Generador</button>
         <button class="tab-btn" data-tab="tab-bins">Bins GPay</button>
         <button class="tab-btn" data-tab="tab-checker">CHECAR</button>
-        <button class="tab-btn" data-tab="tab-injection">Inyección</button>
+        <button class="tab-btn active" data-tab="tab-injection">Inyección</button>
       </div>
 
       <!-- TAB GENERADOR -->
-      <div class="panel active" id="tab-generator">
+      <div class="panel" id="tab-generator">
         <div class="row">
           <div class="field">
             <label for="bin-input">BIN (6-8 dígitos o patrón con x)</label>
@@ -550,7 +550,7 @@
       </div>
 
       <!-- TAB INYECCIÓN -->
-      <div class="panel" id="tab-injection">
+      <div class="panel active" id="tab-injection">
         <div class="info-box">
           Aquí controlas la inyección masiva con sincronización “Guardar en Google”.
         </div>
@@ -785,14 +785,13 @@
       const { queue, index } = getInjectionQueue();
       if (!queue.length || index >= queue.length) {
         clearInjectionQueue();
-        updateInjectionStatus();
         alert('Inyección masiva completada. No hay más tarjetas.');
         return;
       }
-      // Guardar y mostrar siguiente
-      alert(`Tarjeta ${index + 1}/${queue.length} guardada en Google.`);
+      // Guardar y recargar para mostrar siguiente
+      alert(`Tarjeta ${index + 1}/${queue.length} guardada en Google. Recargar...`);
       setInjectionQueue(queue, index + 1);
-      updateInjectionStatus();
+      setTimeout(() => location.reload(), 500);
     }
 
     function registerInjectionQueue(cards) {
