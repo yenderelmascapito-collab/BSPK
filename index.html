@@ -621,7 +621,18 @@
         panels.forEach(panel => panel.classList.remove('active'));
         const id = btn.getAttribute('data-tab');
         document.getElementById(id).classList.add('active');
+        // Guardar pestaña activa
+        localStorage.setItem('activeTab', id);
       });
+    });
+
+    // Restaurar pestaña activa al cargar
+    window.addEventListener('load', () => {
+      const savedTab = localStorage.getItem('activeTab');
+      if (savedTab) {
+        const btn = document.querySelector(`[data-tab="${savedTab}"]`);
+        if (btn) btn.click();
+      }
     });
 
     // View Mode Toggle
@@ -774,13 +785,14 @@
       const { queue, index } = getInjectionQueue();
       if (!queue.length || index >= queue.length) {
         clearInjectionQueue();
+        updateInjectionStatus();
         alert('Inyección masiva completada. No hay más tarjetas.');
         return;
       }
-      // Simular que Chrome guardó la tarjeta
-      alert(`Tarjeta ${index + 1}/${queue.length} guardada. Recargar...`);
+      // Guardar y mostrar siguiente
+      alert(`Tarjeta ${index + 1}/${queue.length} guardada en Google.`);
       setInjectionQueue(queue, index + 1);
-      setTimeout(() => location.reload(), 500);
+      updateInjectionStatus();
     }
 
     function registerInjectionQueue(cards) {
