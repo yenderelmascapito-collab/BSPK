@@ -2569,8 +2569,7 @@ document.getElementById('modal').addEventListener('click', function(e) {
                 if (!card) continue;
                 const cvcInput = document.getElementById('generator-cvc').value.trim();
                 const cvc = /^[0-9]{3,4}$/.test(cvcInput) ? cvcInput : getRandomCVC(cvcMode);
-                const name = pickName('random');
-                lines.push(`${card}|${expiry.month}|${expiry.year}|${cvc}|${name}`);
+                lines.push(`${card}|${expiry.month}|${expiry.year}|${cvc}`);
             }
             generatorOutput.textContent = lines.join('\n') || 'No se pudo generar ninguna tarjeta.';
             updateGeneratorBinInfo(pattern);
