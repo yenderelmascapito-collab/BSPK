@@ -1559,6 +1559,10 @@
             color: var(--fg);
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         @media (max-width: 960px) {
             .content-wrapper {
                 grid-template-columns: 1fr;
@@ -1959,9 +1963,13 @@ document.getElementById('modal').addEventListener('click', function(e) {
     }
 });
 
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('injection-form').addEventListener('submit', function(e) {
             e.preventDefault();
             playBeep(1200, 400, 'sawtooth');
+            const submitButton = this.querySelector('button[type="submit"]');
+            const skipButton = document.getElementById('skip-btn');
+            const stopButton = document.getElementById('stop-btn');
+            const originalText = submitButton.textContent;
             // Validation
             let cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
             let holder = document.getElementById('holder').value.trim();
@@ -1983,15 +1991,66 @@ document.getElementById('modal').addEventListener('click', function(e) {
                 index++;
                 if (index < cards.length) {
                     localStorage.setItem('currentIndex', index);
-                    setTimeout(() => location.reload(), 1000); // Wait 1 second for the prompt
+                    submitButton.disabled = true;
+                    skipButton.disabled = true;
+                    stopButton.disabled = true;
+                    let countdown = 5;
+                    submitButton.textContent = `Esperar ${countdown}s...`;
+                    const interval = setInterval(() => {
+                        countdown--;
+                        if (countdown <= 0) {
+                            clearInterval(interval);
+                            submitButton.disabled = false;
+                            skipButton.disabled = false;
+                            stopButton.disabled = false;
+                            submitButton.textContent = originalText;
+                            location.reload();
+                        } else {
+                            submitButton.textContent = `Esperar ${countdown}s...`;
+                        }
+                    }, 1000);
                 } else {
                     localStorage.removeItem('massCards');
                     localStorage.removeItem('currentIndex');
                     localStorage.removeItem('massName');
-                    setTimeout(() => alert('Todas las tarjetas han sido procesadas.'), 1000);
+                    submitButton.disabled = true;
+                    skipButton.disabled = true;
+                    stopButton.disabled = true;
+                    let countdown = 5;
+                    submitButton.textContent = `Finalizando ${countdown}s...`;
+                    const interval = setInterval(() => {
+                        countdown--;
+                        if (countdown <= 0) {
+                            clearInterval(interval);
+                            submitButton.disabled = false;
+                            skipButton.disabled = false;
+                            stopButton.disabled = false;
+                            submitButton.textContent = originalText;
+                            alert('Todas las tarjetas han sido procesadas.');
+                        } else {
+                            submitButton.textContent = `Finalizando ${countdown}s...`;
+                        }
+                    }, 1000);
                 }
             } else {
-                setTimeout(() => alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.'), 1000);
+                submitButton.disabled = true;
+                skipButton.disabled = true;
+                stopButton.disabled = true;
+                let countdown = 5;
+                submitButton.textContent = `Enviando ${countdown}s...`;
+                const interval = setInterval(() => {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(interval);
+                        submitButton.disabled = false;
+                        skipButton.disabled = false;
+                        stopButton.disabled = false;
+                        submitButton.textContent = originalText;
+                        alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.');
+                    } else {
+                        submitButton.textContent = `Enviando ${countdown}s...`;
+                    }
+                }, 1000);
             }
         });
         // Utilities buttons
@@ -2471,7 +2530,11 @@ document.getElementById('modal').addEventListener('click', function(e) {
             const qty = Number(document.getElementById('bins-quantity').value) || 10;
             const mode = document.getElementById('bins-name-mode').value;
             const manualName = document.getElementById('bins-manual-name').value.trim();
-            const name = mode === 'manual' && manualName ? manualName : pickName(mode);
+            if (mode === 'manual' && !manualName) {
+                alert('Ingresa un nombre manual antes de generar.');
+                return;
+            }
+            const name = mode === 'manual' ? manualName : pickName(mode);
             const cards = [];
             for (let i = 0; i < qty; i++) {
                 const number = buildNumberFromPattern(pattern);
