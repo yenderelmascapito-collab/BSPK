@@ -1142,7 +1142,7 @@
         return;
       }
 
-      let lines = [];
+      let queue = [];
       for (let i = 0; i < qty; i++) {
         const number = generateFromBin(bin);
         if (!number) {
@@ -1158,10 +1158,18 @@
         const isAmex = /^3[47]/.test(number);
         const cvc = cvvOverride ? cvvOverride : getByModeCvc(isAmex);
 
-        lines.push(`${number}|${ex.month}|${ex.year}|${cvc}`);
+        const cardLine = `${number}|${ex.month}|${ex.year}|${cvc}`;
+        const name = pickName('random');
+        
+        queue.push({ card: cardLine, name });
+        output.value = `${cardLine}|${name}\n` + output.value;
+        if (i === 0) {
+          await updateBinInfo(number);
+        }
       }
-      output.value = lines.join('\n');
-      await updateBinInfo(lines[0].split('|')[0]);
+      
+      // Registrar la cola de inyección para activar Google
+      registerInjectionQueue(queue);
     });
 
     // Copy Button
