@@ -1286,7 +1286,12 @@
         .content-wrapper {
             display: grid;
             grid-template-columns: 270px 1fr;
+            gap: 28px;
             min-height: 0;
+        }
+
+        .container {
+            width: min(1400px, 100%);
         }
 
         .mobile-view .container {
@@ -1298,8 +1303,9 @@
         }
 
         .mobile-view .sidebar {
-            flex-direction: row;
-            overflow-x: auto;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
             border-right: none;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -1559,8 +1565,9 @@
             }
 
             .sidebar {
-                flex-direction: row;
-                overflow-x: auto;
+                flex-direction: column;
+                overflow-x: hidden;
+                overflow-y: auto;
                 border-right: none;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
                 padding: 18px;
