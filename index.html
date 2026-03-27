@@ -1216,23 +1216,22 @@
       // Enviar el formulario al iframe
       document.getElementById('injection-form').submit();
       
-      // Esperar a que el form se envíe, LUEGO cargar la siguiente tarjeta
-      setTimeout(() => {
-        const { queue, index } = getInjectionQueue();
-        
-        if (queue && queue.length > 0) {
-          const nextIndex = index + 1;
-          if (nextIndex < queue.length) {
-            // Hay más tarjetas - ir a la siguiente
-            setInjectionQueue(queue, nextIndex);
-            location.reload();
-          } else {
-            // Se terminaron todas las tarjetas
-            clearInjectionQueue();
-            alert('✓ Todas las tarjetas han sido procesadas.');
-          }
+      // Procesar la cola INMEDIATAMENTE (no en setTimeout)
+      const { queue, index } = getInjectionQueue();
+      
+      if (queue && queue.length > 0) {
+        const nextIndex = index + 1;
+        if (nextIndex < queue.length) {
+          // Guardar AHORA el siguiente índice
+          setInjectionQueue(queue, nextIndex);
+          // Esperar 1 segundo (dar tiempo a Google para mostrar prompt) y recargar
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          // Se terminaron todas las tarjetas
+          clearInjectionQueue();
+          setTimeout(() => alert('✓ Todas las tarjetas han sido procesadas.'), 1000);
         }
-      }, 200); // Dar tiempo al form para enviarse
+      }
     });
     injectionSkipBtn.addEventListener('click', () => {
       const { queue, index } = getInjectionQueue();
