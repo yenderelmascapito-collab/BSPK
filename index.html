@@ -640,15 +640,10 @@
         if (btn) btn.click();
       }
       
-      // Sincronizar localStorage con parámetros de URL si existen
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlIndex = Number(urlParams.get('i'));
-      if (!isNaN(urlIndex) && urlIndex >= 0) {
-        localStorage.setItem('vcgInjectionIndex', String(urlIndex));
-      }
-      
-      // Actualizar estado de la inyección
-      updateInjectionStatus();
+      // Actualizar estado de la inyección DESPUÉS de asegurar que el DOM esté listo
+      setTimeout(() => {
+        updateInjectionStatus();
+      }, 50);
     });
 
     // View Mode Toggle
@@ -1219,13 +1214,14 @@
       e.preventDefault();
       const { queue, index } = getInjectionQueue();
       if (queue.length && index < queue.length) {
-        // Incrementar índice
+        // Garanti que se guarda el siguiente índice
         const nextIndex = index + 1;
-        setInjectionQueue(queue, nextIndex);
-        // Forzar actualización y recargar
+        localStorage.setItem('vcgInjectionQueue', JSON.stringify(queue));
+        localStorage.setItem('vcgInjectionIndex', String(nextIndex));
+        // Esperar más tiempo antes de recargar
         setTimeout(() => {
           location.reload();
-        }, 100);
+        }, 200);
       } else {
         clearInjectionQueue();
         updateInjectionStatus();
