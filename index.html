@@ -285,121 +285,10 @@
 
     .error.show {
       display: block;
-      animation: slideIn 0.3s ease-out;
     }
 
     .hidden {
       display: none !important;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeInCard {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.7;
-      }
-    }
-
-    .injection-card {
-      animation: fadeInCard 0.4s ease-out;
-      border: 2px solid rgba(52, 211, 153, 0.5);
-      border-radius: 15px;
-      padding: 16px;
-      background: rgba(7, 20, 37, 0.9);
-      margin-bottom: 16px;
-    }
-
-    .injection-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .saved-cards-section {
-      margin-top: 20px;
-      padding: 16px;
-      background: rgba(10, 18, 35, 0.9);
-      border: 1px solid rgba(106, 145, 255, 0.3);
-      border-radius: 15px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .saved-card-item {
-      padding: 12px;
-      background: rgba(14, 25, 50, 0.8);
-      border-left: 4px solid var(--accent);
-      margin-bottom: 10px;
-      border-radius: 8px;
-      animation: fadeInCard 0.3s ease-out;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .saved-card-item small {
-      color: #a8bae2;
-      font-size: 0.8rem;
-    }
-
-    .extrapolation-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin: 12px 0;
-    }
-
-    .extrapolation-method {
-      border: 1px solid rgba(106, 145, 255, 0.35);
-      border-radius: 12px;
-      padding: 14px;
-      background: rgba(9, 17, 34, 0.85);
-      cursor: pointer;
-      transition: 0.3s;
-      text-align: center;
-    }
-
-    .extrapolation-method:hover {
-      border-color: var(--accent);
-      background: rgba(12, 22, 44, 0.95);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(52, 211, 153, 0.2);
-    }
-
-    .extrapolation-method h4 {
-      color: #75e6e7;
-      margin-bottom: 6px;
-      font-size: 0.95rem;
-    }
-
-    .extrapolation-method small {
-      color: #99a9c9;
-      font-size: 0.8rem;
-      display: block;
     }
 
     .modal {
@@ -570,7 +459,6 @@
         <button class="tab-btn" data-tab="tab-bins">Bins GPay</button>
         <button class="tab-btn" data-tab="tab-checker">CHECAR</button>
         <button class="tab-btn active" data-tab="tab-injection">Inyección</button>
-        <button class="tab-btn" data-tab="tab-extrapolation">Extrapoblación</button>
       </div>
 
       <!-- TAB GENERADOR -->
@@ -672,72 +560,33 @@
             <input type="text" id="card-counter" readonly placeholder="Tarjetas enviadas: 0">
           </div>
         </div>
-        <!-- INYECCIÓN FORM -->
-        <div class="injection-card">
-          <form id="injection-form" method="POST" autocomplete="on">
-            <div class="row">
-              <div class="field">
-                <label for="card-number">Número de tarjeta</label>
-                <input type="text" id="card-number" name="cc-number" autocomplete="cc-number" placeholder="#### #### #### ####">
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label for="holder">Titular</label>
-                <input type="text" id="holder" name="cc-name" autocomplete="cc-name" placeholder="Nombre del titular">
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label for="expiry">Vencimiento (MM/YY)</label>
-                <input type="text" id="expiry" name="cc-exp" autocomplete="cc-exp" placeholder="MM/YY">
-              </div>
-              <div class="field">
-                <label for="cvv">CVV (opcional)</label>
-                <input type="text" id="cvv" name="cc-csc" autocomplete="cc-csc" placeholder="CVV">
-              </div>
-            </div>
-            <div class="injection-actions">
-              <button type="submit" class="btn btn-success" style="flex: 1; padding: 14px; font-size: 1rem;">✓ GUARDAR TARJETA</button>
-              <button type="button" id="save-prev-btn" class="btn btn-secondary" style="padding: 14px 16px; font-size: 0.9rem;" title="Guardar tarjeta anterior">↶ ANTERIOR</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- TARJETAS GUARDADAS -->
-        <div class="saved-cards-section" id="saved-cards-section" style="display: none;">
-          <h3 style="color: #75e6e7; margin-bottom: 12px; font-size: 1.1rem;">Tarjetas Guardadas</h3>
-          <div id="saved-cards-list"></div>
-        </div>
-      </div>
-
-      <!-- TAB EXTRAPOBLACIÓN -->
-      <div class="panel" id="tab-extrapolation">
-        <div class="info-box">
-          <strong>Extrapoblación de LIVES</strong>. Selecciona un método para generar tarjetas adicionales basadas en patrones de LIVES.
-        </div>
-        
-        <div class="row">
-          <div class="field">
-            <label for="live-input">Ingresa LIVE(s)</label>
-            <textarea id="live-input" placeholder="Ej. 4532123456789012|01|25|123&#10;5234567890123456|12|27|456" rows="6" style="font-family: monospace; font-size: 0.85rem;"></textarea>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label>Métodos de Extrapoblación</label>
-            <div class="extrapolation-grid" id="extrapolation-methods">
-              <!-- Se llenarán dinámicamente -->
+        <form id="injection-form" method="POST" autocomplete="on">
+          <div class="row">
+            <div class="field">
+              <label for="card-number">Número de tarjeta</label>
+              <input type="text" id="card-number" name="cc-number" autocomplete="cc-number" placeholder="#### #### #### ####">
             </div>
           </div>
-        </div>
-
-        <div class="row">
-          <button class="btn btn-success" id="extrapolate-btn" style="width: 100%; padding: 14px; font-size: 1rem;">Extrapoblar</button>
-        </div>
-
-        <textarea id="extrapolation-output" rows="12" placeholder="Resultados de extrapoblación aparecerán aquí..." readonly style="margin-top: 14px;"></textarea>
+          <div class="row">
+            <div class="field">
+              <label for="holder">Titular</label>
+              <input type="text" id="holder" name="cc-name" autocomplete="cc-name" placeholder="Nombre del titular">
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="expiry">Vencimiento (MM/YY)</label>
+              <input type="text" id="expiry" name="cc-exp" autocomplete="cc-exp" placeholder="MM/YY">
+            </div>
+            <div class="field">
+              <label for="cvv">CVV (opcional)</label>
+              <input type="text" id="cvv" name="cc-csc" autocomplete="cc-csc" placeholder="CVV">
+            </div>
+          </div>
+          <div class="row">
+            <button type="submit" class="btn btn-success" style="width: 100%; padding: 14px; font-size: 1rem;">✓ GUARDAR TARJETA</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -1374,241 +1223,6 @@
         setTimeout(() => alert('Formulario enviado. Si tienes tarjetas guardadas en Chrome, debería aparecer la opción de guardar esta nueva tarjeta.'), 2500);
       }
     });
-
-    // ============ SAVED CARDS FEATURE ============
-    const savePrevBtn = document.getElementById('save-prev-btn');
-    const savedCardsSection = document.getElementById('saved-cards-section');
-    const savedCardsList = document.getElementById('saved-cards-list');
-
-    function getSavedCards() {
-      try {
-        return JSON.parse(localStorage.getItem('savedCards') || '[]');
-      } catch {
-        return [];
-      }
-    }
-
-    function setSavedCards(cards) {
-      localStorage.setItem('savedCards', JSON.stringify(cards));
-    }
-
-    function renderSavedCards() {
-      const cards = getSavedCards();
-      
-      if (cards.length === 0) {
-        savedCardsSection.style.display = 'none';
-        return;
-      }
-
-      savedCardsSection.style.display = 'block';
-      savedCardsList.innerHTML = '';
-
-      cards.forEach((cardData, idx) => {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'saved-card-item';
-        cardDiv.style.cssText = 'padding: 10px; margin: 8px 0; background: rgba(117, 230, 231, 0.1); border-left: 3px solid #75e6e7; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;';
-        
-        const cardInfo = document.createElement('div');
-        cardInfo.innerHTML = `<strong>${cardData.card.substring(0, 4)} **** **** ${cardData.card.slice(-4)}</strong> | ${cardData.expiry} | ${cardData.holder}`;
-        cardInfo.style.flex = '1';
-
-        const loadBtn = document.createElement('button');
-        loadBtn.type = 'button';
-        loadBtn.className = 'btn btn-secondary';
-        loadBtn.textContent = '↻ Cargar';
-        loadBtn.style.marginLeft = '8px';
-        loadBtn.addEventListener('click', () => {
-          document.getElementById('card-number').value = cardData.card.replace(/(\d{4})(?=\d)/g, '$1 ');
-          document.getElementById('holder').value = cardData.holder;
-          document.getElementById('expiry').value = cardData.expiry;
-          document.getElementById('cvv').value = cardData.cvv;
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn btn-danger';
-        deleteBtn.textContent = '✕';
-        deleteBtn.style.marginLeft = '4px';
-        deleteBtn.style.padding = '6px 12px';
-        deleteBtn.addEventListener('click', () => {
-          cards.splice(idx, 1);
-          setSavedCards(cards);
-          renderSavedCards();
-        });
-
-        cardDiv.appendChild(cardInfo);
-        cardDiv.appendChild(loadBtn);
-        cardDiv.appendChild(deleteBtn);
-        savedCardsList.appendChild(cardDiv);
-      });
-    }
-
-    savePrevBtn.addEventListener('click', () => {
-      const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
-      const holder = document.getElementById('holder').value.trim();
-      const expiry = document.getElementById('expiry').value;
-      const cvv = document.getElementById('cvv').value;
-
-      if (!cardNumber || !holder || !expiry) {
-        alert('Por favor, completa al menos: Numero, Titular y Vencimiento');
-        return;
-      }
-
-      const cards = getSavedCards();
-      const cardData = {
-        card: cardNumber,
-        holder: holder,
-        expiry: expiry,
-        cvv: cvv,
-        timestamp: new Date().toISOString()
-      };
-
-      cards.unshift(cardData); // Add to beginning
-      if (cards.length > 20) cards.pop(); // Keep only last 20
-      
-      setSavedCards(cards);
-      renderSavedCards();
-      alert('✓ Tarjeta anterior guardada');
-    });
-
-    // Mostrar tarjetas guardadas al cargar
-    renderSavedCards();
-
-    // ============ EXTRAPOLATION FEATURE ============
-    const liveInput = document.getElementById('live-input');
-    const extrapolationMethodsContainer = document.getElementById('extrapolation-methods');
-    const extrapolateBtn = document.getElementById('extrapolate-btn');
-    const extrapolationOutput = document.getElementById('extrapolation-output');
-
-    const extrapolationMethods = [
-      {
-        id: 'binwalk',
-        name: 'BIN Proximidad (+/-5)',
-        description: 'Variar primeros dígitos del BIN'
-      },
-      {
-        id: 'sequential',
-        name: 'Secuencial Puro',
-        description: 'Incrementar números secuencialmente'
-      },
-      {
-        id: 'pattern',
-        name: 'Análisis de Patrón',
-        description: 'Detectar y replicar patrones'
-      },
-      {
-        id: 'random',
-        name: 'Variación Random',
-        description: 'Génesis aleatoria con Luhn'
-      }
-    ];
-
-    function renderExtrapolationMethods() {
-      extrapolationMethodsContainer.innerHTML = '';
-      extrapolationMethods.forEach(method => {
-        const label = document.createElement('label');
-        label.style.cssText = 'display: flex; align-items: center; padding: 10px; margin: 8px 0; background: rgba(255, 255, 255, 0.05); border-radius: 4px; cursor: pointer;';
-        
-        const input = document.createElement('input');
-        input.type = 'radio';
-        input.name = 'extrapolation-method';
-        input.value = method.id;
-        input.style.marginRight = '12px';
-        input.checked = method.id === 'sequential';
-
-        const div = document.createElement('div');
-        div.innerHTML = `<strong>${method.name}</strong><br><small style="opacity: 0.7;">${method.description}</small>`;
-
-        label.appendChild(input);
-        label.appendChild(div);
-        extrapolationMethodsContainer.appendChild(label);
-      });
-    }
-
-    function extrapolateCards() {
-      const liveText = liveInput.value.trim();
-      if (!liveText) {
-        alert('Por favor ingresa al menos un LIVE');
-        return;
-      }
-
-      const selectedMethod = document.querySelector('input[name="extrapolation-method"]:checked')?.value || 'sequential';
-      const lines = liveText.split('\n').filter(l => l.trim());
-      const results = [];
-
-      lines.forEach(line => {
-        const parts = line.split('|');
-        if (parts.length < 4) return;
-
-        const binCard = parts[0];
-        const month = parts[1];
-        const year = parts[2];
-        const cvv = parts[3];
-
-        // Generar 5 variaciones por LIVE según método
-        for (let i = 1; i <= 5; i++) {
-          let newCard = null;
-
-          if (selectedMethod === 'binwalk') {
-            // Variar últimos dígitos del BIN
-            const prefix = binCard.substring(0, binCard.length - 2);
-            const lastTwo = parseInt(binCard.slice(-2));
-            const variation = lastTwo + (i % 2 === 0 ? -i : i);
-            newCard = prefix + String(variation % 100).padStart(2, '0');
-          } else if (selectedMethod === 'sequential') {
-            // Incrementar el número de tarjeta
-            const num = BigInt(binCard);
-            newCard = (num + BigInt(i)).toString();
-            while (newCard.length < binCard.length) newCard = '0' + newCard;
-            if (newCard.length > 16) newCard = newCard.slice(0, 16);
-          } else if (selectedMethod === 'pattern') {
-            // Mantener patrón del BIN, variar sufijo
-            const patternMatch = binCard.match(/(\d+)(\d{2,3})$/);
-            if (patternMatch) {
-              const base = patternMatch[1];
-              const suffix = (parseInt(patternMatch[2]) + i).toString().slice(-2);
-              newCard = base + suffix;
-            } else {
-              newCard = binCard;
-            }
-          } else if (selectedMethod === 'random') {
-            // Generar variación aleatoria manteniendo BIN
-            const bin = binCard.substring(0, 6);
-            const remainder = genCardWithoutLuhn(bin + 'xxxxxxxxxx');
-            newCard = remainder ? remainder.substring(0, 16) : binCard;
-          }
-
-          if (newCard && newCard.length === 16) {
-            // Validar con Luhn
-            if (luhnCheck(newCard)) {
-              results.push(`${newCard}|${month}|${year}|${cvv}`);
-            }
-          }
-        }
-      });
-
-      if (results.length === 0) {
-        extrapolationOutput.value = '⚠ No se encontraron resultados válidos.\nIntenta otro método.';
-        return;
-      }
-
-      extrapolationOutput.value = results.join('\n');
-    }
-
-    function genCardWithoutLuhn(pattern) {
-      let replaced = '';
-      for (const c of pattern) {
-        if (c === 'x' || c === 'X') {
-          replaced += Math.floor(Math.random() * 10);
-        } else {
-          replaced += c;
-        }
-      }
-      return replaced;
-    }
-
-    extrapolateBtn.addEventListener('click', extrapolateCards);
-    renderExtrapolationMethods();
 
     // Auto responsive
     if (window.innerWidth < 860) {
